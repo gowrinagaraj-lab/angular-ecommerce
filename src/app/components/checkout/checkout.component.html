@@ -1,0 +1,136 @@
+<div class="checkout-wrapper">
+  <div class="checkout-card">
+    <h2>Checkout</h2>
+
+    <!-- Order Summary -->
+    <div class="section-box summary-box">
+      <h3>Order Summary</h3>
+      <div *ngFor="let item of cartItems" class="summary-row">
+        <span>{{ item.product?.name }} × {{ item.quantity }}</span>
+        <strong>₹{{ (item.product?.price || 0) * item.quantity }}</strong>
+      </div>
+      <div class="summary-total">
+        <span>Grand Total:</span>
+        <strong class="total-price">₹{{ grandTotal }}</strong>
+      </div>
+    </div>
+
+    <!-- Select Delivery Address -->
+    <div class="section-box">
+      <div class="section-header">
+        <h3>Shipping Address</h3>
+        <button type="button" class="btn-link" (click)="toggleAddForm()">
+          {{ showAddressForm ? 'Cancel' : '+ Add New Address' }}
+        </button>
+      </div>
+
+      <div *ngIf="loadingAddresses" class="loading-text">Loading addresses...</div>
+
+      <!-- Address Cards Grid -->
+      <div *ngIf="!loadingAddresses && addresses.length > 0" class="address-grid">
+        <div *ngFor="let addr of addresses" class="address-item" [class.selected]="selectedAddressId === addr._id"
+          (click)="selectAddress(addr)">
+          <div class="address-header">
+            <strong>{{ addr.fullName }}</strong>
+            <span *ngIf="addr.isDefault" class="badge-default">Default</span>
+          </div>
+          <p class="phone-text">📞 {{ addr.phone }}</p>
+          <p class="address-text">{{ addr.address }}, {{ addr.city }}, {{ addr.state }} - {{ addr.pincode }}, {{
+            addr.country }}</p>
+
+          <div class="address-actions">
+            <button type="button" class="btn-sm" (click)="startEditAddress(addr, $event)">Edit</button>
+            <button type="button" class="btn-sm btn-danger" (click)="deleteAddress(addr._id!, $event)">Delete</button>
+            <button *ngIf="!addr.isDefault" type="button" class="btn-sm btn-alt"
+              (click)="setAsDefault(addr._id!, $event)">Set Default</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add/Edit Address Form -->
+      <div *ngIf="showAddressForm" class="address-form-box">
+        <h4>{{ isEditing ? 'Edit Address' : 'Add New Address' }}</h4>
+        <form (ngSubmit)="saveAddress()">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Full Name *</label>
+              <input type="text" [(ngModel)]="formData.fullName" name="fullName" required>
+            </div>
+            <div class="form-group">
+              <label>Phone Number *</label>
+              <input type="text" maxlength="10" [(ngModel)]="formData.phone" name="phone" required>
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label>Street Address *</label>
+            <input type="text" [(ngModel)]="formData.address" name="address" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>City *</label>
+              <input type="text" [(ngModel)]="formData.city" name="city" required>
+            </div>
+            <div class="form-group">
+              <label>State *</label>
+              <select [(ngModel)]="formData.state" name="state" required class="form-control">
+                <option value="">Select State</option>
+                <option *ngFor="let s of indianStates" [value]="s">{{ s }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Country *</label>
+              <input type="text" [(ngModel)]="formData.country" name="country" required>
+            </div>
+            <div class="form-group">
+              <label>Pincode *</label>
+              <input type="text" [(ngModel)]="formData.pincode" name="pincode" required>
+            </div>
+          </div>
+
+          <!-- Location Picker Map -->
+          <div class="form-group full-width">
+            <label>Select Delivery Location on Map</label>
+            <div id="location-map" class="map-container"></div>
+            <div *ngIf="formData.location" class="location-text">
+              Selected Location: Lat {{ formData.location.lat | number:'1.4-4' }}, Lng {{ formData.location.lng | number:'1.4-4' }}
+            </div>
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label>
+              <input type="checkbox" [(ngModel)]="formData.isDefault" name="isDefault">
+              Set as default address
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" [disabled]="savingAddress" class="btn-submit">
+              {{ savingAddress ? 'Saving...' : (isEditing ? 'Update Address' : 'Save & Choose') }}
+            </button>
+            <button type="button" class="btn-cancel" (click)="showAddressForm = false">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Payment Method -->
+    <div class="section-box">
+      <h3>Payment Method</h3>
+      <select [(ngModel)]="paymentMethod" class="payment-select">
+        <option value="COD">Cash on Delivery (COD)</option>
+        <option value="UPI">UPI / GPay / PhonePe</option>
+        <option value="CARD">Credit / Debit Card</option>
+      </select>
+    </div>
+
+    <!-- Place Order Button -->
+    <button class="btn-place-order" [disabled]="placingOrder || !selectedAddress" (click)="onPlaceOrder()">
+      {{ placingOrder ? 'Placing Order...' : 'Place Order' }}
+    </button>
+  </div>
+</div>

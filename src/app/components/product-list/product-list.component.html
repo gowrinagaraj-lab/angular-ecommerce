@@ -1,0 +1,190 @@
+<div class="container">
+  <!-- Header Bar -->
+  <div class="header-bar">
+    <h2>Products</h2>
+    <button 
+      *ngIf="isAdmin" 
+      class="btn btn-primary" 
+      (click)="toggleAddForm()"
+    >
+      {{ showAddForm ? 'Close Form' : '+ Add New Product' }}
+    </button>
+  </div>
+
+  <!-- CREATE NEW PRODUCT FORM (Admin Only) -->
+  <div *ngIf="isAdmin && showAddForm" class="form-card add-card">
+    <h3>Create New Product</h3>
+    <form (ngSubmit)="createProduct()">
+      
+      <!-- Row 1: Name & Price -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Name *</label>
+          <input type="text" [(ngModel)]="newProduct.name" name="newName" required>
+        </div>
+        <div class="form-group">
+          <label>Price (₹) *</label>
+          <input type="number" [(ngModel)]="newProduct.price" name="newPrice" required min="0">
+        </div>
+      </div>
+
+      <!-- Row 2: Stock, Category Dropdown, Brand -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Stock *</label>
+          <input type="number" [(ngModel)]="newProduct.stock" name="newStock" required min="0">
+        </div>
+<div class="form-group">
+  <label>Category *</label>
+  <select [(ngModel)]="newProduct.category" name="newCategory" required>
+    <option [ngValue]="''">-- Select Category --</option>
+    <option *ngFor="let category of categories" [ngValue]="category._id">
+      {{ category.name }}
+    </option>
+  </select>
+</div>
+        <div class="form-group">
+          <label>Brand</label>
+          <input type="text" [(ngModel)]="newProduct.brand" name="newBrand">
+        </div>
+      </div>
+
+      <!-- Row 3: Image File / Main Image URL -->
+      <div class="form-row align-center">
+        <div class="form-group">
+          <label>Upload Image File</label>
+          <input type="file" (change)="onFileSelected($event)" accept="image/*">
+        </div>
+        <div class="form-group">
+          <label>OR Main Image URL</label>
+          <input type="text" [(ngModel)]="newProduct.mainImage" name="newMainImage" placeholder="https://...">
+        </div>
+        <div *ngIf="imagePreview" class="preview-box">
+          <img [src]="imagePreview" alt="Image preview">
+        </div>
+      </div>
+
+      <!-- Row 4: Description -->
+      <div class="form-group full-width">
+        <label>Description *</label>
+        <textarea [(ngModel)]="newProduct.description" name="newDescription" required></textarea>
+      </div>
+
+      <div class="button-group">
+        <button type="submit" [disabled]="creating" class="btn btn-primary">
+          {{ creating ? 'Creating...' : 'Save Product' }}
+        </button>
+        <button type="button" (click)="toggleAddForm()" class="btn btn-cancel">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- EDIT PRODUCT FORM (Admin Only) -->
+  <div *ngIf="isAdmin && editingProduct" class="form-card edit-card">
+    <h3>Edit Product: {{ editingProduct.name }}</h3>
+    <form (ngSubmit)="saveProductUpdate()">
+      
+      <!-- Row 1: Name & Price -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Name:</label>
+          <input type="text" [(ngModel)]="editingProduct.name" name="editName" required>
+        </div>
+        <div class="form-group">
+          <label>Price (₹):</label>
+          <input type="number" [(ngModel)]="editingProduct.price" name="editPrice" required min="0">
+        </div>
+      </div>
+
+      <!-- Row 2: Stock, Category Dropdown, Brand -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Stock:</label>
+          <input type="number" [(ngModel)]="editingProduct.stock" name="editStock" required min="0">
+        </div>
+<div class="form-group">
+  <label>Category *</label>
+  <select [(ngModel)]="editingProduct.category" name="editCategory" required>
+    <option [ngValue]="''">-- Select Category --</option>
+    <option *ngFor="let category of categories" [ngValue]="category._id">
+      {{ category.name }}
+    </option>
+  </select>
+</div>
+        <div class="form-group">
+          <label>Brand:</label>
+          <input type="text" [(ngModel)]="editingProduct.brand" name="editBrand">
+        </div>
+      </div>
+
+      <!-- Row 3: Image File / Main Image URL -->
+      <div class="form-row align-center">
+        <div class="form-group">
+          <label>Change Image File</label>
+          <input type="file" (change)="onFileSelected($event)" accept="image/*">
+        </div>
+        <div class="form-group">
+          <label>Main Image URL</label>
+          <input type="text" [(ngModel)]="editingProduct.mainImage" name="editMainImage" placeholder="https://...">
+        </div>
+        <div *ngIf="imagePreview || editingProduct.mainImage" class="preview-box">
+          <img [src]="imagePreview || editingProduct.mainImage" alt="Image preview">
+        </div>
+      </div>
+
+      <!-- Row 4: Description -->
+      <div class="form-group full-width">
+        <label>Description:</label>
+        <textarea [(ngModel)]="editingProduct.description" name="editDescription" required></textarea>
+      </div>
+
+      <div class="button-group">
+        <button type="submit" [disabled]="saving" class="btn btn-primary">
+          {{ saving ? 'Saving...' : 'Save Changes' }}
+        </button>
+        <button type="button" (click)="cancelEdit()" class="btn btn-cancel">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="search-container">
+    <input 
+      type="text" 
+      [(ngModel)]="searchTerm" 
+      (input)="onSearch()" 
+      placeholder="Search products..."
+    />
+  </div>
+
+  <!-- Loading / Error States -->
+  <p *ngIf="loading" class="status-text">Loading products...</p>
+  <p *ngIf="error" class="status-text error-text">{{ error }}</p>
+
+  <!-- 6-COLUMN PRODUCT GRID -->
+  <div class="product-grid-6" *ngIf="!loading && !error">
+    <div class="product-card" *ngFor="let product of products">
+      <div class="card-content">
+        <img 
+          [src]="getImageUrl(product)" 
+          [alt]="product.name" 
+          class="product-img"
+        />
+        <h4 class="product-title" [title]="product.name">{{ product.name }}</h4>
+        <p class="product-price"><strong>₹{{ product.price }}</strong></p>
+        <p class="product-desc">{{ product.description }}</p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="card-actions">
+        <a [routerLink]="['/products', product._id]" class="action-btn btn-details">Details</a>
+        <button (click)="addToCart(product)" class="action-btn btn-cart">Cart</button>
+        
+        <button *ngIf="isAdmin" (click)="startEdit(product)" class="action-btn btn-edit">Edit</button>
+        <button *ngIf="isAdmin" (click)="deleteProduct(product)" class="action-btn btn-delete">Del</button>
+      </div>
+    </div>
+  </div>
+
+  <p *ngIf="!loading && !error && products.length === 0" class="status-text">No products found.</p>
+</div>

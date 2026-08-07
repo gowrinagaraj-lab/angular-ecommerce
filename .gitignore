@@ -1,0 +1,88 @@
+
+# Dependencies
+/node_modules
+
+# Angular build output
+/dist
+/out-tsc
+/tmp
+
+# Compiled files
+*.tsbuildinfo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage
+/coverage
+
+# Angular cache
+/.angular/cache
+
+# Environment files (optional - only if they contain secrets)
+src/environments/environment.local.ts
+src/environments/environment.*.local.ts
+
+# IDE - Visual Studio Code
+.vscode/*
+!.vscode/extensions.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/settings.json
+
+# IntelliJ / WebStorm
+.idea
+*.iml
+
+# Visual Studio
+.vs
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+
+# Package manager
+.pnpm-store
+.npm
+
+# ESLint cache
+.eslintcache
+
+# Test output
+/test-results
+/playwright-report
+
+# Cypress
+/cypress/videos
+/cypress/screenshots
+
+# Firebase
+.firebase
+
+# Netlify
+.netlify
+
+# Vercel
+.vercel
+
+# Local environment variables
+.env
+.env.*
+!.env.example
