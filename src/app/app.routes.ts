@@ -12,6 +12,8 @@ import { RegisterComponent } from './components/register/register.component';
 import { WishlistComponent } from './components/wishlist/wishlist.component';
 import { ResetPasswordComponent } from './components/reset-password/reset-password.component';
 import { CheckoutComponent } from './components/checkout/checkout.component';
+import { OrderHistoryComponent } from './components/order-history/order-history.component';
+import { AdminCategoryComponent } from './components/admin-category/admin-category.component';
 
 // -------------------------------------------------------------
 // ROUTE GUARDS
@@ -61,7 +63,12 @@ export const routes: Routes = [
   { path: 'cart', component: CartComponent, canActivate: [authGuard] },
   { path: 'wishlist', component: WishlistComponent, canActivate: [authGuard] },
   { path: 'checkout', component: CheckoutComponent, canActivate: [authGuard] },
-{ path: 'reset-password/:token', component: ResetPasswordComponent },
+  { path: 'orders', component: OrderHistoryComponent, canActivate: [authGuard] },
+  { path: 'reset-password/:token', component: ResetPasswordComponent },
+  
+  // Admin Routes
+  { path: 'admin/categories', component: AdminCategoryComponent, canActivate: [adminGuard] },
+
   // Fallback Route
   { path: '**', redirectTo: '/products' }
 ];

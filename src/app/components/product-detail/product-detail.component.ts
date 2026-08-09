@@ -5,6 +5,11 @@ import { ProductService } from '../../services/product.service';
 import { CartService } from '../../services/cart.service';
 import { Product } from '../../models/product.model';
 
+interface CategoryItem {
+  _id: string;
+  name: string;
+}
+
 @Component({
   selector: 'app-product-detail',
   standalone: true,
@@ -24,7 +29,7 @@ import { Product } from '../../models/product.model';
         />
 
         <p><strong>Price:</strong> ₹{{ product.price }}</p>
-        <p><strong>Category:</strong> {{ product.category }}</p>
+        <p><strong>Category:</strong> {{ getCategoryName(product) }}</p>
         <p><strong>Brand:</strong> {{ product.brand || 'N/A' }}</p>
         <p><strong>Stock:</strong> {{ product.stock }}</p>
         <p><strong>Description:</strong> {{ product.description }}</p>
@@ -39,6 +44,7 @@ import { Product } from '../../models/product.model';
 })
 export class ProductDetailComponent implements OnInit {
   product: Product | null = null;
+  categories: CategoryItem[] = [];
   loading = true;
   error = '';
 
@@ -49,6 +55,12 @@ export class ProductDetailComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.productService.getCategories().subscribe({
+      next: (res: any) => {
+        this.categories = res.data || res || [];
+      }
+    });
+
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.productService.getProductById(id).subscribe({
@@ -65,6 +77,19 @@ export class ProductDetailComponent implements OnInit {
     }
   }
 
+  // Category can come back as a populated object ({_id, name}) or a plain id string
+  // that needs to be looked up against the categories list fetched separately.
+  getCategoryName(product: Product): string {
+    if (product.category && typeof product.category === 'object') {
+      return product.category.name;
+    }
+    if (typeof product.category === 'string') {
+      const match = this.categories.find(c => c._id === product.category);
+      if (match) return match.name;
+    }
+    return 'N/A';
+  }
+
   // Safe image accessor method preventing array out-of-bounds errors
   getImageUrl(product: Product): string {
     if (product.mainImage && product.mainImage.trim() !== '') {
@@ -76,7 +101,7 @@ export class ProductDetailComponent implements OnInit {
     return 'https://via.placeholder.com/300?text=No+Image';
   }
 
-  addToCart(): void {
+  addToCart(): void { 
     if (!this.product?._id) {
       alert('Invalid product details.');
       return;

@@ -2,11 +2,15 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { AddressService, Address } from '../../services/address.service';
 import { CartService } from '../../services/cart.service';
-import { OrderService } from '../../services/order.service'; // Adjust import path if needed
+import { OrderService } from '../../services/order.service';
+import { PaymentService, VerifyPaymentPayload } from '../../services/payment.service';
 import { INDIAN_STATES } from '../../constants/indianStates';
 import * as L from 'leaflet';
+
+declare var Razorpay: any;
 
 @Component({
   selector: 'app-checkout',
@@ -16,13 +20,11 @@ import * as L from 'leaflet';
   styleUrls: ['./checkout.component.css']
 })
 export class CheckoutComponent implements OnInit {
-  // Addresses State
   addresses: Address[] = [];
   selectedAddressId: string | null = null;
   selectedAddress: Address | null = null;
   loadingAddresses = true;
 
-  // New/Edit Address Form State
   showAddressForm = false;
   isEditing = false;
   editingAddressId: string | null = null;
@@ -33,10 +35,10 @@ export class CheckoutComponent implements OnInit {
   // Map State
   map: L.Map | undefined;
   marker: L.Marker | undefined;
+  loadingGeocode = false;
 
   formData: Address = this.resetAddressForm();
 
-  // Payment & Cart
   paymentMethod = 'COD';
   cartItems: any[] = [];
   grandTotal = 0;
@@ -46,6 +48,8 @@ export class CheckoutComponent implements OnInit {
     private addressService: AddressService,
     private cartService: CartService,
     private orderService: OrderService,
+    private paymentService: PaymentService,
+    private http: HttpClient,
     private router: Router
   ) {}
 
@@ -61,14 +65,14 @@ export class CheckoutComponent implements OnInit {
         this.addresses = res.data || [];
         this.loadingAddresses = false;
 
-        // Auto-select default address or first address available
         if (this.addresses.length > 0) {
           const defaultAddr = this.addresses.find(a => a.isDefault) || this.addresses[0];
           this.selectAddress(defaultAddr);
         } else {
           this.selectedAddress = null;
           this.selectedAddressId = null;
-          this.showAddressForm = true; // Auto open form if no addresses saved
+          this.showAddressForm = true;
+          setTimeout(() => this.initMap(), 150);
         }
       },
       error: (err) => {
@@ -100,7 +104,7 @@ export class CheckoutComponent implements OnInit {
     this.formData = this.resetAddressForm();
     this.showAddressForm = !this.showAddressForm;
     if (this.showAddressForm) {
-      setTimeout(() => this.initMap(), 100);
+      setTimeout(() => this.initMap(), 150);
     }
   }
 
@@ -110,7 +114,7 @@ export class CheckoutComponent implements OnInit {
     this.editingAddressId = addr._id || null;
     this.formData = { ...addr };
     this.showAddressForm = true;
-    setTimeout(() => this.initMap(), 100);
+    setTimeout(() => this.initMap(), 150);
   }
 
   resetAddressForm(): Address {
@@ -184,6 +188,7 @@ export class CheckoutComponent implements OnInit {
     });
   }
 
+  // --- ORDER PLACEMENT LOGIC ---
   onPlaceOrder(): void {
     if (!this.selectedAddress) {
       alert('Please choose a shipping address before placing your order.');
@@ -208,46 +213,115 @@ export class CheckoutComponent implements OnInit {
         state: this.selectedAddress.state,
         country: this.selectedAddress.country,
         pincode: this.selectedAddress.pincode,
-        location: this.selectedAddress.location
+        location: (this.selectedAddress as any).location
       },
       paymentMethod: this.paymentMethod,
       totalAmount: this.grandTotal
     };
 
+    if (this.paymentMethod === 'COD') {
+      this.processCODOrder(orderPayload);
+    } else {
+      this.processOnlinePayment(orderPayload);
+    }
+  }
+
+  private processCODOrder(orderPayload: any): void {
     this.orderService.checkout(orderPayload).subscribe({
       next: () => {
         this.placingOrder = false;
         alert('Order placed successfully!');
         this.router.navigate(['/products']);
       },
-      error: (err:any) => {
+      error: (err: any) => {
         this.placingOrder = false;
         alert(err.error?.message || 'Failed to place order.');
       }
     });
   }
 
+  private processOnlinePayment(orderPayload: any): void {
+    this.orderService.checkout(orderPayload).subscribe({
+      next: (res: any) => {
+        const orderData = res.data; // Expecting created order containing razorpayOrderId
+
+        const options = {
+          key: 'rzp_test_TNJH9x0z3Ail4F', // Replace with your actual Razorpay Key ID
+          amount: orderData.totalAmount * 100,
+          currency: 'INR',
+          name: 'Your E-Commerce Store',
+          description: 'Payment for Order',
+          order_id: orderData.razorpayOrderId,
+          handler: (response: any) => {
+            this.verifyPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            });
+          },
+          prefill: {
+            name: this.selectedAddress?.fullName,
+            contact: this.selectedAddress?.phone
+          },
+          theme: {
+            color: '#10B981'
+          },
+          modal: {
+            ondismiss: () => {
+              this.placingOrder = false;
+              alert('Payment modal closed before completing payment.');
+            }
+          }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
+      },
+      error: (err: any) => {
+        this.placingOrder = false;
+        alert(err.error?.message || 'Failed to create order for online payment.');
+      }
+    });
+  }
+
+  private verifyPayment(payload: VerifyPaymentPayload): void {
+    this.paymentService.verifyPayment(payload).subscribe({
+      next: () => {
+        this.placingOrder = false;
+        alert('Payment verified and order confirmed successfully!');
+        this.router.navigate(['/products']);
+      },
+      error: (err: any) => {
+        this.placingOrder = false;
+        alert(err.error?.message || 'Payment verification failed.');
+      }
+    });
+  }
+
+  // --- LEAFLET MAP & REVERSE GEOCODING IMPLEMENTATION ---
   initMap(): void {
     const mapElement = document.getElementById('location-map');
     if (!mapElement) return;
 
     if (this.map) {
-      this.map.remove(); // Clean up existing map instance
+      this.map.remove();
     }
 
-    // Default center (e.g., center of India)
     let center: L.LatLngTuple = [20.5937, 78.9629];
-    if (this.formData.location && this.formData.location.lat && this.formData.location.lng) {
-      center = [this.formData.location.lat, this.formData.location.lng];
+    let zoomLevel = 5;
+
+    const existingLoc = (this.formData as any).location;
+    if (existingLoc && existingLoc.lat && existingLoc.lng) {
+      center = [existingLoc.lat, existingLoc.lng];
+      zoomLevel = 14;
     }
 
-    this.map = L.map('location-map').setView(center, 5);
+    this.map = L.map('location-map').setView(center, zoomLevel);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
     }).addTo(this.map);
 
-    // Fix default marker icon issue with Leaflet in Angular
     const iconDefault = L.icon({
       iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
       iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -259,21 +333,90 @@ export class CheckoutComponent implements OnInit {
     });
     L.Marker.prototype.options.icon = iconDefault;
 
-    if (this.formData.location && this.formData.location.lat && this.formData.location.lng) {
-      this.marker = L.marker([this.formData.location.lat, this.formData.location.lng]).addTo(this.map);
+    if (existingLoc && existingLoc.lat && existingLoc.lng) {
+      this.marker = L.marker([existingLoc.lat, existingLoc.lng]).addTo(this.map);
+    } else if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        if (this.map) {
+          this.map.setView([lat, lng], 14);
+          this.setMarkerAndGeocode(lat, lng);
+        }
+      });
     }
 
     this.map.on('click', (e: L.LeafletMouseEvent) => {
-      if (this.marker && this.map) {
-        this.map.removeLayer(this.marker);
-      }
-      if (this.map) {
-         this.marker = L.marker(e.latlng).addTo(this.map);
-      }
-      this.formData.location = {
-        lat: e.latlng.lat,
-        lng: e.latlng.lng
-      };
+      this.setMarkerAndGeocode(e.latlng.lat, e.latlng.lng);
     });
+  }
+
+  setMarkerAndGeocode(lat: number, lng: number): void {
+    if (this.marker && this.map) {
+      this.map.removeLayer(this.marker);
+    }
+
+    if (this.map) {
+      this.marker = L.marker([lat, lng]).addTo(this.map);
+    }
+
+    (this.formData as any).location = { lat, lng };
+
+    this.loadingGeocode = true;
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+
+    this.http.get<any>(url).subscribe({
+      next: (res) => {
+        this.loadingGeocode = false;
+        if (res && res.address) {
+          const addr = res.address;
+
+          this.formData.address = res.display_name || '';
+          this.formData.city = addr.city || addr.town || addr.village || addr.suburb || '';
+          this.formData.state = addr.state || '';
+          this.formData.country = addr.country || 'India';
+          this.formData.pincode = addr.postcode || '';
+
+          if (addr.state) {
+            const matchedState = this.indianStates.find(s => s.toLowerCase() === addr.state.toLowerCase());
+            if (matchedState) {
+              this.formData.state = matchedState;
+            }
+          }
+        }
+      },
+      error: () => {
+        this.loadingGeocode = false;
+      }
+    });
+  }
+
+  useCurrentLocation(): void {
+    if (navigator.geolocation) {
+      this.loadingGeocode = true;
+      
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          
+          if (this.map) {
+            this.map.setView([lat, lng], 16);
+            this.setMarkerAndGeocode(lat, lng);
+          }
+        },
+        (error) => {
+          this.loadingGeocode = false;
+          let errorMsg = 'Unable to fetch your location.';
+          if (error.code === 1) errorMsg = 'Location access denied by user.';
+          else if (error.code === 2) errorMsg = 'Location unavailable.';
+          else if (error.code === 3) errorMsg = 'Location request timed out.';
+          alert(errorMsg);
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    } else {
+      alert('Geolocation is not supported by your browser.');
+    }
   }
 }

@@ -17,6 +17,8 @@ import { WishlistService } from '../../services/wishlist.service';
           <a routerLink="/products" style="color: white; margin-left: 15px; text-decoration: none;">Products</a>
           <a routerLink="/wishlist" style="color: white; margin-left: 15px; text-decoration: none;">Wishlist ({{ wishlistCount }})</a>
           <a routerLink="/cart" style="color: white; margin-left: 15px; text-decoration: none;">Cart ({{ cartCount }})</a>
+          <a routerLink="/orders" style="color: white; margin-left: 15px; text-decoration: none;">My Orders</a>
+          <a *ngIf="user.role === 'admin'" routerLink="/admin/categories" style="color: white; margin-left: 15px; text-decoration: none;">Manage Categories</a>
           <span style="margin-left: 15px;">Hi, {{ user.name }}</span>
           <a href="#" (click)="logout($event)" style="color: #e74c3c; margin-left: 15px; text-decoration: none;">Logout</a>
         </ng-container>

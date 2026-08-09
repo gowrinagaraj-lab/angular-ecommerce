@@ -16,6 +16,18 @@ export class ProductService {
     return this.http.get(this.categoryurl);
   }
 
+  createCategory(categoryData: { name: string, description?: string }): Observable<any> {
+    return this.http.post(this.categoryurl, categoryData);
+  }
+
+  updateCategory(id: string, categoryData: { name: string, description?: string }): Observable<any> {
+    return this.http.put(`${this.categoryurl}/${id}`, categoryData);
+  }
+
+  deleteCategory(id: string): Observable<any> {
+    return this.http.delete(`${this.categoryurl}/${id}`);
+  }
+
   getProducts(page = 1, limit = 10, search = '', category = ''): Observable<ProductApiResponse> {
     let params = new HttpParams()
       .set('page', page)

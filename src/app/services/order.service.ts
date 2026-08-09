@@ -23,6 +23,31 @@ export interface OrderResponse {
   data?: any;
 }
 
+export interface OrderItem {
+  product: string;
+  name: string;
+  price: number;
+  quantity: number;
+  subtotal: number;
+}
+
+export interface Order {
+  _id: string;
+  items: OrderItem[];
+  shippingAddress: ShippingAddress;
+  paymentMethod: 'COD' | 'CARD' | 'UPI';
+  paymentStatus?: string;
+  orderStatus?: string;
+  totalAmount: number;
+  createdAt: string;
+}
+
+export interface OrdersResponse {
+  success: boolean;
+  message?: string;
+  data: Order[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -34,5 +59,10 @@ export class OrderService {
   // POST /api/orders/checkout
   checkout(payload:any): Observable<OrderResponse> {
     return this.http.post<OrderResponse>(`${this.apiUrl}/checkout`, payload);
+  }
+
+  // GET /api/orders - current user's order history
+  getMyOrders(): Observable<OrdersResponse> {
+    return this.http.get<OrdersResponse>(this.apiUrl);
   }
 }

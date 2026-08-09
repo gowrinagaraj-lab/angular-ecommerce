@@ -10,7 +10,7 @@ export interface Product {
   description: string;
   price: number;
   stock?: number;
-  category?: string;
+  category?: string | { _id: string; name: string };
   brand?: string;
   images?: ProductImage[];
   mainImage?: string;

@@ -14,10 +14,12 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 export class ResetPasswordComponent {
 token = '';
   password = '';
+  confirmPassword = '';
   loading = false;
   message = '';
   error = '';
   success = false;
+  tokenMissing = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -28,11 +30,20 @@ token = '';
   ngOnInit(): void {
     // Read the reset token directly from the URL route parameter
     this.token = this.route.snapshot.paramMap.get('token') || '';
+    if (!this.token) {
+      this.tokenMissing = true;
+      this.error = 'This reset link is invalid or missing a token. Please request a new one.';
+    }
   }
 
   onResetPassword(): void {
     if (!this.password || this.password.length < 6) {
       this.error = 'Password must be at least 6 characters long.';
+      return;
+    }
+
+    if (this.password !== this.confirmPassword) {
+      this.error = 'Passwords do not match.';
       return;
     }
 
@@ -57,6 +68,9 @@ token = '';
       error: (err) => {
         this.loading = false;
         this.error = err.error?.message || 'Failed to reset password. Token may be expired.';
+        if (err.status === 400 || err.status === 401) {
+          this.tokenMissing = true;
+        }
       }
     });
   }

@@ -94,10 +94,21 @@
 
           <!-- Location Picker Map -->
           <div class="form-group full-width">
-            <label>Select Delivery Location on Map</label>
+            <label style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span>Select Delivery Location on Map *</span>
+              <button type="button" class="btn-sm btn-alt" (click)="useCurrentLocation()" [disabled]="loadingGeocode" style="display: flex; align-items: center; gap: 5px;">
+                📍 Use Current Location
+              </button>
+            </label>
+
+            <span *ngIf="loadingGeocode" style="color: #2980b9; font-size: 0.8rem; display: block; margin-bottom: 5px;">
+              Fetching address details...
+            </span>
+
             <div id="location-map" class="map-container"></div>
+
             <div *ngIf="formData.location" class="location-text">
-              Selected Location: Lat {{ formData.location.lat | number:'1.4-4' }}, Lng {{ formData.location.lng | number:'1.4-4' }}
+              📍 Selected Pin: Lat {{ formData.location.lat | number:'1.4-4' }}, Lng {{ formData.location.lng | number:'1.4-4' }}
             </div>
           </div>
 
@@ -126,7 +137,7 @@
         <option value="UPI">UPI / GPay / PhonePe</option>
         <option value="CARD">Credit / Debit Card</option>
       </select>
-    </div>
+    </div> 
 
     <!-- Place Order Button -->
     <button class="btn-place-order" [disabled]="placingOrder || !selectedAddress" (click)="onPlaceOrder()">
