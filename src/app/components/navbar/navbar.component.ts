@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { RouterLink, Router } from '@angular/router';
 import { CartService } from '../../services/cart.service';
 import { AuthService, User } from '../../services/auth.service';
@@ -8,28 +8,31 @@ import { WishlistService } from '../../services/wishlist.service';
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [RouterLink],
   template: `
     <nav style="background-color: #2c3e50; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center;">
       <h2><a routerLink="/" style="color: white; text-decoration: none; font-weight: bold;">E-Shop</a></h2>
       <div>
-        <ng-container *ngIf="user">
+        @if (user) {
           <a routerLink="/products" style="color: white; margin-left: 15px; text-decoration: none;">Products</a>
           <a routerLink="/wishlist" style="color: white; margin-left: 15px; text-decoration: none;">Wishlist ({{ wishlistCount }})</a>
           <a routerLink="/cart" style="color: white; margin-left: 15px; text-decoration: none;">Cart ({{ cartCount }})</a>
           <a routerLink="/orders" style="color: white; margin-left: 15px; text-decoration: none;">My Orders</a>
-          <a *ngIf="user.role === 'admin'" routerLink="/admin/categories" style="color: white; margin-left: 15px; text-decoration: none;">Manage Categories</a>
+          @if (user.role === 'admin') {
+            <a routerLink="/admin/categories" style="color: white; margin-left: 15px; text-decoration: none;">Manage Categories</a>
+            <a routerLink="/admin/orders" style="color: white; margin-left: 15px; text-decoration: none;">Manage Orders</a>
+          }
           <span style="margin-left: 15px;">Hi, {{ user.name }}</span>
           <a href="#" (click)="logout($event)" style="color: #e74c3c; margin-left: 15px; text-decoration: none;">Logout</a>
-        </ng-container>
-
-        <ng-container *ngIf="!user">
+        }
+    
+        @if (!user) {
           <a routerLink="/login" style="color: white; margin-left: 15px; text-decoration: none;">Login</a>
           <a routerLink="/register" style="color: white; margin-left: 15px; text-decoration: none;">Register</a>
-        </ng-container>
+        }
       </div>
     </nav>
-  `
+    `
 })
 export class NavbarComponent implements OnInit {
   cartCount = 0;

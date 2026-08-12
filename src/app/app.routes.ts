@@ -14,6 +14,7 @@ import { ResetPasswordComponent } from './components/reset-password/reset-passwo
 import { CheckoutComponent } from './components/checkout/checkout.component';
 import { OrderHistoryComponent } from './components/order-history/order-history.component';
 import { AdminCategoryComponent } from './components/admin-category/admin-category.component';
+import { AdminOrdersComponent } from './components/admin-orders/admin-orders.component';
 
 // -------------------------------------------------------------
 // ROUTE GUARDS
@@ -68,6 +69,7 @@ export const routes: Routes = [
   
   // Admin Routes
   { path: 'admin/categories', component: AdminCategoryComponent, canActivate: [adminGuard] },
+  { path: 'admin/orders', component: AdminOrdersComponent, canActivate: [adminGuard] },
 
   // Fallback Route
   { path: '**', redirectTo: '/products' }

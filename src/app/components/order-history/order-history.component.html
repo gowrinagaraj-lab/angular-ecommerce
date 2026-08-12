@@ -2,14 +2,21 @@
   <div class="order-history-card">
     <h2>My Orders</h2>
 
-    <p *ngIf="loading" class="loading-text">Loading your orders...</p>
-    <p *ngIf="error" class="error-text">{{ error }}</p>
+    @if (loading) {
+    <p class="loading-text">Loading your orders...</p>
+    }
+    @if (error) {
+    <p class="error-text">{{ error }}</p>
+    }
 
-    <p *ngIf="!loading && !error && orders.length === 0" class="empty-text">
+    @if (!loading && !error && orders.length === 0) {
+    <p class="empty-text">
       You haven't placed any orders yet. <a routerLink="/products">Start shopping</a>.
     </p>
+    }
 
-    <table class="orders-table" *ngIf="!loading && orders.length > 0">
+    @if (!loading && orders.length > 0) {
+    <table class="orders-table">
       <thead>
         <tr>
           <th>Order ID</th>
@@ -23,43 +30,58 @@
         </tr>
       </thead>
       <tbody>
-        <ng-container *ngFor="let order of orders">
-          <tr class="order-row" (click)="toggleDetails(order._id)">
-            <td class="order-id">#{{ order._id.slice(-8).toUpperCase() }}</td>
-            <td>{{ order.createdAt | date: 'mediumDate' }}</td>
-            <td>{{ order.items.length }} item{{ order.items.length !== 1 ? 's' : '' }}</td>
-            <td>{{ order.paymentMethod }} </td>
-            <td>{{ order.paymentStatus || 'Pending' }}</td>
-            <td><span class="badge" [ngClass]="statusClass(order.orderStatus)">{{ order.orderStatus || 'Pending' }}</span></td>
-            <td class="order-total">₹{{ order.totalAmount }}</td>
-            <td class="expand-toggle">{{ expandedOrderId === order._id ? '▲' : '▼' }}</td>
-          </tr>
-
-          <tr *ngIf="expandedOrderId === order._id" class="order-details-row">
-            <td colspan="7">
-              <div class="order-details">
-                <div class="details-section">
-                  <h4>Items</h4>
-                  <div class="detail-item-row" *ngFor="let item of order.items">
-                    <span>{{ item.name }} × {{ item.quantity }}</span>
-                    <strong>₹{{ item.subtotal }}</strong>
-                  </div>
+        @for (order of orders; track order) {
+        <tr class="order-row" (click)="toggleDetails(order._id)">
+          <td class="order-id">#{{ order._id.slice(-8).toUpperCase() }}</td>
+          <td>{{ order.createdAt | date:'medium' }}</td>
+          <td>{{ order.items.length }} item{{ order.items.length !== 1 ? 's' : '' }}</td>
+          <td>{{ order.paymentMethod }} </td>
+          <td>{{ order.paymentStatus || 'Pending' }}</td>
+          <td><span class="badge" [ngClass]="statusClass(order.orderStatus)">{{ order.orderStatus || 'Pending' }}</span>
+          </td>
+          <td class="order-total">₹{{ order.totalAmount }}</td>
+          <td class="expand-toggle">{{ expandedOrderId === order._id ? '▲' : '▼' }}</td>
+        </tr>
+        @if (expandedOrderId === order._id) {
+        <tr class="order-details-row">
+          <td colspan="7">
+            <div class="order-details">
+              <div class="details-section">
+                <h4>Items</h4>
+                @for (item of order.items; track item) {
+                <div class="detail-item-row">
+                  <span>{{ item.name }} × {{ item.quantity }}</span>
+                  <strong>₹{{ item.subtotal }}</strong>
                 </div>
-
-                <div class="details-section">
-                  <h4>Shipping Address</h4>
-                  <p class="shipping-text">
-                    {{ order.shippingAddress?.fullName }}, {{ order.shippingAddress?.phone }}<br>
-                    {{ order.shippingAddress?.address }}, {{ order.shippingAddress?.city }},
-                    {{ order.shippingAddress?.state }} - {{ order.shippingAddress?.pincode }},
-                    {{ order.shippingAddress?.country }}
-                  </p>
-                </div>
+                }
               </div>
-            </td>
-          </tr>
-        </ng-container>
+              <div class="details-section">
+                <h4>Shipping Address</h4>
+                <p class="shipping-text">
+                  {{ order.shippingAddress?.fullName }}, {{ order.shippingAddress?.phone }}<br>
+                  {{ order.shippingAddress?.address }}, {{ order.shippingAddress?.city }},
+                  {{ order.shippingAddress?.state }} - {{ order.shippingAddress?.pincode }},
+                  {{ order.shippingAddress?.country }}
+                </p>
+              </div>
+
+              @if (order.orderStatus !== 'Delivered' && order.orderStatus !== 'Cancelled' && order.orderStatus !==
+              'Shipped') {
+              <div class="details-section">
+                <h4>Cancel Order</h4>
+                <button class="btn btn-danger" style="padding: 5px 10px; font-size: 0.9rem;"
+                  (click)="cancelOrder(order._id, $event)">
+                  Cancel Order
+                </button>
+              </div>
+              }
+            </div>
+          </td>
+        </tr>
+        }
+        }
       </tbody>
     </table>
+    }
   </div>
 </div>

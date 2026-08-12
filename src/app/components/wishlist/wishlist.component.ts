@@ -1,21 +1,21 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Product, WishlistService } from '../../services/wishlist.service';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-wishlist',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink],
   templateUrl: './wishlist.component.html',
   styleUrl: './wishlist.component.css'
 })
-export class WishlistComponent {
+export class WishlistComponent implements OnInit {
 products: Product[] = [];
-  loading: boolean = false;
-  message: string = '';
-  newProductId: string = ''; // For PoC manual product addition testing
+  loading = false;
+  message = '';
+  newProductId = ''; // For PoC manual product addition testing
 
   constructor(private wishlistService: WishlistService) {}
 

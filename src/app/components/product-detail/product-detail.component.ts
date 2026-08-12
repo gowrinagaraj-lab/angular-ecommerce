@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ProductService } from '../../services/product.service';
 import { CartService } from '../../services/cart.service';
@@ -13,34 +13,37 @@ interface CategoryItem {
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [RouterLink],
   template: `
     <div class="container">
-      <p *ngIf="loading">Loading details...</p>
-      <p *ngIf="error" style="color: red;">{{ error }}</p>
-
-      <div *ngIf="!loading && product">
-        <h2>{{ product.name }}</h2>
-        
-        <img 
-          [src]="getImageUrl(product)" 
-          [alt]="product.name" 
-          style="max-width: 300px; height: auto; margin-bottom: 15px; display: block;"
-        />
-
-        <p><strong>Price:</strong> ₹{{ product.price }}</p>
-        <p><strong>Category:</strong> {{ getCategoryName(product) }}</p>
-        <p><strong>Brand:</strong> {{ product.brand || 'N/A' }}</p>
-        <p><strong>Stock:</strong> {{ product.stock }}</p>
-        <p><strong>Description:</strong> {{ product.description }}</p>
-
-        <div style="margin-top: 20px;">
-          <button class="btn" (click)="addToCart()">Add to Cart</button>
-          <a routerLink="/products" class="btn btn-secondary" style="margin-left: 10px;">Back to Products</a>
+      @if (loading) {
+        <p>Loading details...</p>
+      }
+      @if (error) {
+        <p style="color: red;">{{ error }}</p>
+      }
+    
+      @if (!loading && product) {
+        <div>
+          <h2>{{ product.name }}</h2>
+          <img
+            [src]="getImageUrl(product)"
+            [alt]="product.name"
+            style="max-width: 300px; height: auto; margin-bottom: 15px; display: block;"
+            />
+          <p><strong>Price:</strong> ₹{{ product.price }}</p>
+          <p><strong>Category:</strong> {{ getCategoryName(product) }}</p>
+          <p><strong>Brand:</strong> {{ product.brand || 'N/A' }}</p>
+          <p><strong>Stock:</strong> {{ product.stock }}</p>
+          <p><strong>Description:</strong> {{ product.description }}</p>
+          <div style="margin-top: 20px;">
+            <button class="btn" (click)="addToCart()">Add to Cart</button>
+            <a routerLink="/products" class="btn btn-secondary" style="margin-left: 10px;">Back to Products</a>
+          </div>
         </div>
-      </div>
+      }
     </div>
-  `
+    `
 })
 export class ProductDetailComponent implements OnInit {
   product: Product | null = null;

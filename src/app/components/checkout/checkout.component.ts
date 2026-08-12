@@ -10,7 +10,7 @@ import { PaymentService, VerifyPaymentPayload } from '../../services/payment.ser
 import { INDIAN_STATES } from '../../constants/indianStates';
 import * as L from 'leaflet';
 
-declare var Razorpay: any;
+declare let Razorpay: any;
 
 @Component({
   selector: 'app-checkout',

@@ -1,0 +1,91 @@
+<div class="order-history-wrapper">
+  <div class="order-history-card">
+    <h2>Manage All Orders</h2>
+
+    @if (loading) {
+      <p class="loading-text">Loading orders...</p>
+    }
+    @if (error) {
+      <p class="error-text">{{ error }}</p>
+    }
+
+    @if (!loading && !error && orders.length === 0) {
+      <p class="empty-text">
+        No orders found in the system.
+      </p>
+    }
+
+    @if (!loading && orders.length > 0) {
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Date</th>
+            <th>Items</th>
+            <th>Payment Method</th>
+            <th>Payment Status</th>
+            <th>Order Status</th>
+            <th>Total</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (order of orders; track order) {
+            <tr class="order-row" (click)="toggleDetails(order._id)">
+              <td class="order-id">#{{ order._id.slice(-8).toUpperCase() }}</td>
+              <td>{{ order.createdAt | date: 'medium' }}</td>
+              <td>{{ order.items.length }} item{{ order.items.length !== 1 ? 's' : '' }}</td>
+              <td>{{ order.paymentMethod }} </td>
+              <td>{{ order.paymentStatus || 'Pending' }}</td>
+              <td><span class="badge" [ngClass]="statusClass(order.orderStatus)">{{ order.orderStatus || 'Pending' }}</span></td>
+              <td class="order-total">₹{{ order.totalAmount }}</td>
+              <td class="expand-toggle">{{ expandedOrderId === order._id ? '▲' : '▼' }}</td>
+            </tr>
+            @if (expandedOrderId === order._id) {
+              <tr class="order-details-row">
+                <td colspan="8">
+                  <div class="order-details">
+                    <div class="details-section">
+                      <h4>Items</h4>
+                      @for (item of order.items; track item) {
+                        <div class="detail-item-row">
+                          <span>{{ item.name }} × {{ item.quantity }}</span>
+                          <strong>₹{{ item.subtotal }}</strong>
+                        </div>
+                      }
+                    </div>
+                    <div class="details-section">
+                      <h4>Shipping Address</h4>
+                      <p class="shipping-text">
+                        {{ order.shippingAddress?.fullName }}, {{ order.shippingAddress?.phone }}<br>
+                        {{ order.shippingAddress?.address }}, {{ order.shippingAddress?.city }},
+                        {{ order.shippingAddress?.state }} - {{ order.shippingAddress?.pincode }},
+                        {{ order.shippingAddress?.country }}
+                      </p>
+                    </div>
+                    @if (order.orderStatus !== 'Delivered' && order.orderStatus !== 'Cancelled') {
+                      <div class="details-section">
+                        <h4>Delivery Management</h4>
+                        <div class="delivery-actions" style="display: flex; gap: 10px; margin-top: 10px; align-items: center;">
+                          <button class="btn btn-primary" style="padding: 5px 10px; font-size: 0.9rem;" (click)="generateOtp(order, $event)" [disabled]="generatingOtp">
+                            {{ generatingOtp ? 'Sending...' : 'Generate Delivery OTP' }}
+                          </button>
+                          <div style="display: flex; gap: 5px;">
+                            <input type="text" [(ngModel)]="otpInput" placeholder="Enter 6-digit OTP" class="form-control" style="width: 150px; padding: 5px;" (click)="$event.stopPropagation()">
+                            <button class="btn btn-success" style="padding: 5px 10px; font-size: 0.9rem;" (click)="verifyOtp(order._id, $event)" [disabled]="verifyingOtp || !otpInput">
+                              {{ verifyingOtp ? 'Verifying...' : 'Verify & Deliver' }}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>

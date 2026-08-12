@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { OrderService, Order } from '../../services/order.service';
 
 @Component({
   selector: 'app-order-history',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './order-history.component.html',
   styleUrl: './order-history.component.css'
 })
@@ -15,8 +16,8 @@ export class OrderHistoryComponent implements OnInit {
   loading = true;
   error = '';
   expandedOrderId: string | null = null;
-
-  constructor(private orderService: OrderService) {}
+  otpInput: any
+  constructor(private orderService: OrderService) { }
 
   ngOnInit(): void {
     this.fetchOrders();
@@ -38,6 +39,7 @@ export class OrderHistoryComponent implements OnInit {
 
   toggleDetails(orderId: string): void {
     this.expandedOrderId = this.expandedOrderId === orderId ? null : orderId;
+    this.otpInput = '';
   }
 
   statusClass(status: string | undefined): string {
@@ -47,5 +49,20 @@ export class OrderHistoryComponent implements OnInit {
       case 'shipped': return 'badge-info';
       default: return 'badge-pending';
     }
+  }
+
+  cancelOrder(orderId: string, event: Event): void {
+    event.stopPropagation();
+    if (!confirm('Are you sure you want to cancel this order?')) return;
+
+    this.orderService.cancelOrder(orderId).subscribe({
+      next: (res) => {
+        alert(res.message || 'Order cancelled successfully');
+        this.fetchOrders();
+      },
+      error: (err) => {
+        alert(err.error?.message || 'Failed to cancel order');
+      }
+    });
   }
 }

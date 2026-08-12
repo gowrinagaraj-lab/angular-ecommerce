@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ProductService } from '../../services/product.service';
@@ -15,7 +14,7 @@ export interface CategoryItem {
 @Component({
   selector: 'app-product-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [RouterLink, FormsModule],
   templateUrl: './product-list.component.html',
   styleUrls: ['./product-list.component.css']
 })
@@ -39,10 +38,10 @@ export class ProductListComponent implements OnInit {
   imagePreview: string | null = null;
 
   constructor(
-    private productService: ProductService, 
+    private productService: ProductService,
     private cartService: CartService,
     private authService: AuthService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.authService.currentUser$.subscribe(user => {
@@ -96,6 +95,9 @@ export class ProductListComponent implements OnInit {
         this.imagePreview = reader.result as string;
       };
       reader.readAsDataURL(file);
+    } else {
+      this.selectedFile = null;
+      this.imagePreview = null;
     }
   }
 
@@ -125,7 +127,7 @@ export class ProductListComponent implements OnInit {
 
   startEdit(product: Product): void {
     this.showAddForm = false;
-    
+
     let categoryId = '';
     if (product.category) {
       if (typeof product.category === 'object' && '_id' in (product.category as any)) {
@@ -135,13 +137,14 @@ export class ProductListComponent implements OnInit {
       }
     }
 
-    this.editingProduct = { 
+    this.editingProduct = {
       ...product,
       category: categoryId
     };
 
     this.selectedFile = null;
     this.imagePreview = null;
+
   }
 
   cancelEdit(): void {

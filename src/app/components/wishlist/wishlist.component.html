@@ -3,49 +3,58 @@
   <h2>My Wishlist (PoC)</h2>
 
   <!-- Status Message -->
-  <div *ngIf="message" style="padding: 8px; background: #e2e2e2; margin-bottom: 15px; border-radius: 4px;">
-    {{ message }}
-  </div>
+  @if (message) {
+    <div style="padding: 8px; background: #e2e2e2; margin-bottom: 15px; border-radius: 4px;">
+      {{ message }}
+    </div>
+  }
 
   <!-- Manual Add Input for Testing -->
   <div style="margin-bottom: 20px; display: flex; gap: 8px;">
-    <input 
-      type="text" 
-      [(ngModel)]="newProductId" 
+    <input
+      type="text"
+      [(ngModel)]="newProductId"
       placeholder="Enter Product ID to Add"
       style="flex: 1; padding: 8px;"
-    />
-    <button (click)="addToWishlist()" style="padding: 8px 12px; cursor: pointer;">Add to Wishlist</button>
-  </div>
-
-  <hr />
-
-  <!-- Loading State -->
-  <p *ngIf="loading">Loading wishlist...</p>
-
-  <!-- Empty State -->
-  <p *ngIf="!loading && products.length === 0">Your wishlist is empty.</p>
-
-  <!-- Wishlist List -->
-  <div *ngIf="!loading && products.length > 0">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-      <span><strong>Total Items:</strong> {{ products.length }}</span>
-      <button (click)="clearWishlist()" style="background: red; color: white; border: none; padding: 6px 10px; cursor: pointer;">
-        Clear All
-      </button>
+      />
+      <button (click)="addToWishlist()" style="padding: 8px 12px; cursor: pointer;">Add to Wishlist</button>
     </div>
 
-    <ul style="list-style: none; padding: 0;">
-      <li *ngFor="let item of products" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ccc; padding: 10px 0;">
-        <div>
-          <strong>{{ item.name }}</strong>
-          <br />
-          <small>Price: ${{ item.price }}</small>
+    <hr />
+
+    <!-- Loading State -->
+    @if (loading) {
+      <p>Loading wishlist...</p>
+    }
+
+    <!-- Empty State -->
+    @if (!loading && products.length === 0) {
+      <p>Your wishlist is empty.</p>
+    }
+
+    <!-- Wishlist List -->
+    @if (!loading && products.length > 0) {
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <span><strong>Total Items:</strong> {{ products.length }}</span>
+          <button (click)="clearWishlist()" style="background: red; color: white; border: none; padding: 6px 10px; cursor: pointer;">
+            Clear All
+          </button>
         </div>
-        <button (click)="removeItem(item._id)" style="cursor: pointer; padding: 4px 8px;">
-          Remove
-        </button>
-      </li>
-    </ul>
+        <ul style="list-style: none; padding: 0;">
+          @for (item of products; track item) {
+            <li style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ccc; padding: 10px 0;">
+              <div>
+                <strong>{{ item.name }}</strong>
+                <br />
+                <small>Price: ${{ item.price }}</small>
+              </div>
+              <button (click)="removeItem(item._id)" style="cursor: pointer; padding: 4px 8px;">
+                Remove
+              </button>
+            </li>
+          }
+        </ul>
+      </div>
+    }
   </div>
-</div>

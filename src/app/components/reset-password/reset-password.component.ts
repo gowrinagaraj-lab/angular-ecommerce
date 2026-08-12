@@ -1,17 +1,17 @@
-import { CommonModule } from '@angular/common';
+
 import { HttpClient } from '@angular/common/http';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-reset-password',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink],
   templateUrl: './reset-password.component.html',
   styleUrl: './reset-password.component.css'
 })
-export class ResetPasswordComponent {
+export class ResetPasswordComponent implements OnInit {
 token = '';
   password = '';
   confirmPassword = '';

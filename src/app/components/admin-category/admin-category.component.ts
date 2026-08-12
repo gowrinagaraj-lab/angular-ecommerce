@@ -1,22 +1,22 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { ProductService } from '../../services/product.service';
 
 @Component({
   selector: 'app-admin-category',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './admin-category.component.html',
   styleUrl: './admin-category.component.css'
 })
 export class AdminCategoryComponent implements OnInit {
   categories: any[] = [];
-  categoryName: string = '';
-  categoryDescription: string = '';
+  categoryName = '';
+  categoryDescription = '';
   editingCategoryId: string | null = null;
-  successMessage: string = '';
-  errorMessage: string = '';
+  successMessage = '';
+  errorMessage = '';
   isSubmitting = false;
 
   constructor(private productService: ProductService) {}
