@@ -1,8 +1,9 @@
 name = "angular-ecommerce-app"
+compatibility_date = "2026-08-15"
+
+[assets]
+directory = "./dist/angular-ecommerce-app"
 
 [build]
 command = "npm ci && npm run build"
 cwd = "./"
-
-[env.production]
-name = "angular-ecommerce-app-prod"
