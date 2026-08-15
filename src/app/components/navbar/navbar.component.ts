@@ -22,8 +22,17 @@ import { WishlistService } from '../../services/wishlist.service';
             <a routerLink="/admin/categories" style="color: white; margin-left: 15px; text-decoration: none;">Manage Categories</a>
             <a routerLink="/admin/orders" style="color: white; margin-left: 15px; text-decoration: none;">Manage Orders</a>
           }
-          <span style="margin-left: 15px;">Hi, {{ user.name }}</span>
-          <a href="#" (click)="logout($event)" style="color: #e74c3c; margin-left: 15px; text-decoration: none;">Logout</a>
+          <div style="position: relative; display: inline-block; margin-left: 15px;">
+            <button (click)="toggleMenu()" style="background: none; border: none; color: white; cursor: pointer; font-size: 1rem; padding: 0; outline: none;">
+              Hi, {{ user.name }} ▼
+            </button>
+            @if (isMenuOpen) {
+              <div style="position: absolute; right: 0; top: 100%; margin-top: 0.5rem; background-color: white; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); overflow: hidden; min-width: 160px; z-index: 1000; text-align: left;">
+                <a routerLink="/sign-in-activity" (click)="closeMenu()" style="display: block; padding: 0.75rem 1rem; color: #333; text-decoration: none; border-bottom: 1px solid #eee; font-size: 0.9rem;">Sign In Activity</a>
+                <a href="#" (click)="logout($event)" style="display: block; padding: 0.75rem 1rem; color: #e74c3c; text-decoration: none; font-size: 0.9rem;">Logout</a>
+              </div>
+            }
+          </div>
         }
     
         @if (!user) {
@@ -34,17 +43,20 @@ import { WishlistService } from '../../services/wishlist.service';
     </nav>
     `
 })
+
+
 export class NavbarComponent implements OnInit {
   cartCount = 0;
   wishlistCount = 0;
   user: User | null = null;
+  isMenuOpen = false;
 
   constructor(
-    private cartService: CartService, 
+    private cartService: CartService,
     private authService: AuthService,
     private wishlistService: WishlistService,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     // 1. Subscribe to reactive cart count updates
@@ -76,7 +88,16 @@ export class NavbarComponent implements OnInit {
 
   logout(event: Event): void {
     event.preventDefault();
+    this.closeMenu();
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  toggleMenu(): void {
+    this.isMenuOpen = !this.isMenuOpen;
+  }
+
+  closeMenu(): void {
+    this.isMenuOpen = false;
   }
 }

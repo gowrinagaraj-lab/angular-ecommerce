@@ -105,6 +105,19 @@ export class AdminCategoryComponent implements OnInit {
     }
   }
 
+  toggleStatus(category: any): void {
+    const newStatus = !category.isActive;
+    this.productService.toggleCategoryStatus(category._id, newStatus).subscribe({
+      next: (res) => {
+        this.successMessage = `Category ${newStatus ? 'activated' : 'deactivated'} successfully!`;
+        category.isActive = newStatus;
+      },
+      error: (err) => {
+        this.errorMessage = err.error?.message || 'Failed to update category status';
+      }
+    });
+  }
+
   cancelEdit(): void {
     this.resetForm();
   }

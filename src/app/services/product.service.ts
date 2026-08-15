@@ -28,6 +28,10 @@ export class ProductService {
     return this.http.delete(`${this.categoryurl}/${id}`);
   }
 
+  toggleCategoryStatus(id: string, isActive: boolean): Observable<any> {
+    return this.http.patch(`${this.categoryurl}/${id}/status`, { isActive });
+  }
+
   getProducts(page = 1, limit = 10, search = '', category = ''): Observable<ProductApiResponse> {
     let params = new HttpParams()
       .set('page', page)

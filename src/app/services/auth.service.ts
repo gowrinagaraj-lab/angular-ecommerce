@@ -19,6 +19,25 @@ export interface AuthResponse {
   };
 }
 
+export interface SignInActivity {
+  _id: string;
+  email: string;
+  user?: any;
+  ipAddress?: string;
+  userAgent?: string;
+  status: string;
+  failureReason?: string;
+  createdAt: string;
+}
+
+export interface SignInActivityResponse {
+  success: boolean;
+  total: number;
+  page: number;
+  totalPages: number;
+  data: SignInActivity[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -86,6 +105,19 @@ export class AuthService {
 
   getToken(): string | null {
     return localStorage.getItem('token');
+  }
+
+  // GET /api/auth/sign-in-activity
+  getMySignInActivity(page: number = 1, limit: number = 10): Observable<SignInActivityResponse> {
+    return this.http.get<SignInActivityResponse>(`${this.apiUrl}/sign-in-activity?page=${page}&limit=${limit}`);
+  }
+
+  // GET /api/auth/admin/sign-in-activity
+  getAllSignInActivity(page: number = 1, limit: number = 10, email?: string, status?: string): Observable<SignInActivityResponse> {
+    let url = `${this.apiUrl}/admin/sign-in-activity?page=${page}&limit=${limit}`;
+    if (email) url += `&email=${encodeURIComponent(email)}`;
+    if (status) url += `&status=${encodeURIComponent(status)}`;
+    return this.http.get<SignInActivityResponse>(url);
   }
 
   private handleAuthSuccess(res: AuthResponse): void {
