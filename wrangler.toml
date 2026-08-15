@@ -1,8 +1,11 @@
 name = "angular-ecommerce-app"
 compatibility_date = "2026-08-15"
+workers_dev = true
 
 [assets]
-directory = "./dist/angular-ecommerce-app"
+directory = "./dist/angular-ecommerce-app/browser"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
 
 [build]
 command = "npm ci && npm run build"
