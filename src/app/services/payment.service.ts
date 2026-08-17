@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_CONFIG } from '../config/api.config';
 
 export interface VerifyPaymentPayload {
   razorpay_order_id: string;
@@ -12,7 +13,7 @@ export interface VerifyPaymentPayload {
   providedIn: 'root'
 })
 export class PaymentService {
-  private apiUrl = 'http://localhost:5000/api'; // Update to match your API base URL
+  private apiUrl = API_CONFIG.baseUrl; // Update to match your API base URL
 
   constructor(private http: HttpClient) {}
 

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { getApiUrl } from '../config/api.config';
 
 export interface User {
   _id?: string;
@@ -42,7 +43,7 @@ export interface SignInActivityResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:5000/api/auth';
+  private apiUrl = getApiUrl('auth');
   
   // Safely parse localStorage without crashing
   private currentUserSubject = new BehaviorSubject<User | null>(this.getInitialUser());

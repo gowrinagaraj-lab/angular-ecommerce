@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { getApiUrl } from '../config/api.config';
 
 export interface BackendCartItem {
   _id?: string;
@@ -30,7 +31,7 @@ export interface CartResponse {
   providedIn: 'root'
 })
 export class CartService {
-  private apiUrl = 'http://localhost:5000/api/cart';
+  private apiUrl = getApiUrl('cart');
   private cartCountSubject = new BehaviorSubject<number>(0);
   cartCount$ = this.cartCountSubject.asObservable();
 

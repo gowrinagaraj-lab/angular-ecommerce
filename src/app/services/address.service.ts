@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { getApiUrl } from '../config/api.config';
 
 export interface Address {
   _id?: string;
@@ -19,7 +20,7 @@ export interface Address {
   providedIn: 'root'
 })
 export class AddressService {
-  private apiUrl = 'http://localhost:5000/api/addresses';
+  private apiUrl = getApiUrl('addresses');
 
   constructor(private http: HttpClient) {}
 

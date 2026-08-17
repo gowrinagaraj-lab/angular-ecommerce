@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { getApiUrl } from '../config/api.config';
 
 export interface ShippingAddress {
   fullName: string;
@@ -53,7 +54,7 @@ export interface OrdersResponse {
   providedIn: 'root'
 })
 export class OrderService {
-  private apiUrl = 'http://localhost:5000/api/orders'; // Adjust backend port if needed
+  private apiUrl = getApiUrl('orders'); // Adjust backend port if needed
 
   constructor(private http: HttpClient) {}
 

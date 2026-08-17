@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { getApiUrl } from '../config/api.config';
 
 export interface Product {
   _id: string;
@@ -20,7 +21,7 @@ export interface WishlistResponse {
   providedIn: 'root'
 })
 export class WishlistService {
-  private apiUrl = 'http://localhost:5000/api/wishlist'; // Adjust backend URL/port as needed
+  private apiUrl = getApiUrl('wishlist'); // Adjust backend URL/port as needed
 
   constructor(private http: HttpClient) {}
 
