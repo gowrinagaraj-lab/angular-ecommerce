@@ -1,0 +1,13 @@
+.notification-card {
+  cursor: pointer;
+}
+
+.notification-card:hover {
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.notification-card.unread {
+  background: #f8fafc !important;
+  border-left: 4px solid #3b82f6 !important;
+}

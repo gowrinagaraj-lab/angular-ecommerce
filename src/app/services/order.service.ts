@@ -87,4 +87,9 @@ export class OrderService {
   cancelOrder(orderId: string): Observable<OrderResponse> {
     return this.http.patch<OrderResponse>(`${this.apiUrl}/${orderId}/cancel`, {});
   }
+
+  // GET /api/orders/admin/stats
+  getOrderStats(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/admin/stats`);
+  }
 }

@@ -150,15 +150,26 @@
     </div>
   }
 
-  <!-- Search Bar -->
-  <div class="search-container">
+  <!-- Search and Filter Bar -->
+  <div class="search-container" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+    <select 
+      [(ngModel)]="selectedCategory" 
+      (change)="onCategoryChange()" 
+      style="padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; min-width: 200px;">
+      <option value="">All Categories</option>
+      @for (category of categories; track category) {
+        <option [value]="category._id">{{ category.name }}</option>
+      }
+    </select>
+
     <input
       type="text"
       [(ngModel)]="searchTerm"
       (input)="onSearch()"
       placeholder="Search products..."
+      style="flex: 1; min-width: 200px;"
       />
-    </div>
+  </div>
 
     <!-- Loading / Error States -->
     @if (loading) {
@@ -197,6 +208,18 @@
             </div>
           }
         </div>
+
+        @if (totalRecords > 0) {
+          <div style="margin-top: 2rem;">
+            <p-paginator 
+              [first]="(currentPage - 1) * pageSize" 
+              [rows]="pageSize" 
+              [totalRecords]="totalRecords" 
+              [rowsPerPageOptions]="[6, 12, 24]" 
+              (onPageChange)="onPageChange($event)">
+            </p-paginator>
+          </div>
+        }
       }
 
       @if (!loading && !error && products.length === 0) {

@@ -1,6 +1,7 @@
 // API Configuration - Single source of truth
 export const API_CONFIG = {
-  baseUrl: 'https://ecommerce-api-xejc.onrender.com/api',
+  // baseUrl: 'https://ecommerce-api-xejc.onrender.com/api',
+  baseUrl: 'http://localhost:5000/api',
   endpoints: {
     auth: '/auth',
     products: '/products',
@@ -10,6 +11,8 @@ export const API_CONFIG = {
     addresses: '/addresses',
     wishlist: '/wishlist',
     payments: '/payments',
+    notifications: '/notifications',
+    chat: '/chat'
   }
 };
 

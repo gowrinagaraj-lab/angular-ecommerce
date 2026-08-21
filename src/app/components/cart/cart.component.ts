@@ -21,8 +21,8 @@ import { WishlistService } from '../../services/wishlist.service';
       }
     
       @if (!loading && cartItems.length > 0) {
-        <div>
-          <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+        <div class="table-responsive">
+          <table style="width: 100%; min-width: 600px; border-collapse: collapse; margin-bottom: 20px;">
             <thead>
               <tr style="border-bottom: 2px solid #ddd; text-align: left;">
                 <th style="padding: 10px;">Product</th>
@@ -75,14 +75,14 @@ import { WishlistService } from '../../services/wishlist.service';
               }
             </tbody>
           </table>
-          <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: space-between; align-items: center;">
             <button (click)="clearCart()" style="background: #7f8c8d; color: white; border: none; padding: 8px 15px; cursor: pointer; border-radius: 4px;">
               Clear Cart
             </button>
-            <h3>Grand Total: \${{ grandTotal.toFixed(2) }}</h3>
+            <h3 style="margin: 0;">Grand Total: \${{ grandTotal.toFixed(2) }}</h3>
           </div>
-          <div style="margin-top: 20px; text-align: right; display: flex; gap: 10px; justify-content: flex-end;">
-            <a routerLink="/wishlist" style="color: #8e44ad; text-decoration: none; align-self: center; font-weight: bold;">
+          <div style="margin-top: 20px; display: flex; flex-wrap: wrap; gap: 15px; justify-content: flex-end; align-items: center;">
+            <a routerLink="/wishlist" style="color: #8e44ad; text-decoration: none; font-weight: bold;">
               View My Wishlist →
             </a>
             <a routerLink="/checkout" class="btn" style="background: #27ae60; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; display: inline-block;">

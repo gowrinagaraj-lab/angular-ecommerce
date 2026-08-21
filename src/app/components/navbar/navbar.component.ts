@@ -4,25 +4,32 @@ import { RouterLink, Router } from '@angular/router';
 import { CartService } from '../../services/cart.service';
 import { AuthService, User } from '../../services/auth.service';
 import { WishlistService } from '../../services/wishlist.service';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
   imports: [RouterLink],
   template: `
-    <nav style="background-color: #2c3e50; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center;">
-      <h2><a routerLink="/" style="color: white; text-decoration: none; font-weight: bold;">E-Shop</a></h2>
-      <div>
+    <nav style="background-color: #2c3e50; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+      <h2 style="margin: 0;"><a routerLink="/" style="color: white; text-decoration: none; font-weight: bold;">E-Shop</a></h2>
+      <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 15px;">
         @if (user) {
-          <a routerLink="/products" style="color: white; margin-left: 15px; text-decoration: none;">Products</a>
-          <a routerLink="/wishlist" style="color: white; margin-left: 15px; text-decoration: none;">Wishlist ({{ wishlistCount }})</a>
-          <a routerLink="/cart" style="color: white; margin-left: 15px; text-decoration: none;">Cart ({{ cartCount }})</a>
-          <a routerLink="/orders" style="color: white; margin-left: 15px; text-decoration: none;">My Orders</a>
-          @if (user.role === 'admin') {
-            <a routerLink="/admin/categories" style="color: white; margin-left: 15px; text-decoration: none;">Manage Categories</a>
-            <a routerLink="/admin/orders" style="color: white; margin-left: 15px; text-decoration: none;">Manage Orders</a>
+          <a routerLink="/products" style="color: white; text-decoration: none;">Products</a>
+          <a routerLink="/wishlist" style="color: white; text-decoration: none;">Wishlist ({{ wishlistCount }})</a>
+          <a routerLink="/cart" style="color: white; text-decoration: none;">Cart ({{ cartCount }})</a>
+          <a routerLink="/notifications" style="color: white; text-decoration: none;">
+            Notifications @if (unreadNotificationCount > 0) { ({{ unreadNotificationCount }}) }
+          </a>
+          @if (user.role !== 'admin') {
+            <a routerLink="/orders" style="color: white; text-decoration: none;">My Orders</a>
           }
-          <div style="position: relative; display: inline-block; margin-left: 15px;">
+          @if (user.role === 'admin') {
+            <a routerLink="/admin/dashboard" style="color: white; text-decoration: none;">Dashboard</a>
+            <a routerLink="/admin/categories" style="color: white; text-decoration: none;">Manage Categories</a>
+            <a routerLink="/admin/orders" style="color: white; text-decoration: none;">Manage Orders</a>
+          }
+          <div style="position: relative; display: inline-block;">
             <button (click)="toggleMenu()" style="background: none; border: none; color: white; cursor: pointer; font-size: 1rem; padding: 0; outline: none;">
               Hi, {{ user.name }} ▼
             </button>
@@ -36,8 +43,8 @@ import { WishlistService } from '../../services/wishlist.service';
         }
     
         @if (!user) {
-          <a routerLink="/login" style="color: white; margin-left: 15px; text-decoration: none;">Login</a>
-          <a routerLink="/register" style="color: white; margin-left: 15px; text-decoration: none;">Register</a>
+          <a routerLink="/login" style="color: white; text-decoration: none;">Login</a>
+          <a routerLink="/register" style="color: white; text-decoration: none;">Register</a>
         }
       </div>
     </nav>
@@ -48,6 +55,7 @@ import { WishlistService } from '../../services/wishlist.service';
 export class NavbarComponent implements OnInit {
   cartCount = 0;
   wishlistCount = 0;
+  unreadNotificationCount = 0;
   user: User | null = null;
   isMenuOpen = false;
 
@@ -55,12 +63,14 @@ export class NavbarComponent implements OnInit {
     private cartService: CartService,
     private authService: AuthService,
     private wishlistService: WishlistService,
+    private notificationService: NotificationService,
     private router: Router
   ) { }
 
   ngOnInit(): void {
     // 1. Subscribe to reactive cart count updates
     this.cartService.cartCount$.subscribe(count => this.cartCount = count);
+    this.notificationService.unreadCount$.subscribe(count => this.unreadNotificationCount = count);
 
     // 2. Fetch counts automatically when user logs in or page reloads
     this.authService.currentUser$.subscribe(user => {
@@ -68,9 +78,11 @@ export class NavbarComponent implements OnInit {
       if (user) {
         this.cartService.getCart().subscribe(); // Triggers cart count computation
         this.fetchWishlistCount();
+        this.notificationService.getUnreadCount().subscribe();
       } else {
         this.cartService.resetCartCount(); // Resets count to 0 on logout
         this.wishlistCount = 0;
+        this.notificationService.resetUnreadCount();
       }
     });
   }

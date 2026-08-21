@@ -5,6 +5,7 @@ import { ProductService } from '../../services/product.service';
 import { CartService } from '../../services/cart.service';
 import { Product } from '../../models/product.model';
 import { AuthService } from '../../services/auth.service';
+import { PaginatorModule } from 'primeng/paginator';
 
 export interface CategoryItem {
   _id: string;
@@ -14,7 +15,7 @@ export interface CategoryItem {
 @Component({
   selector: 'app-product-list',
   standalone: true,
-  imports: [RouterLink, FormsModule],
+  imports: [RouterLink, FormsModule, PaginatorModule],
   templateUrl: './product-list.component.html',
   styleUrls: ['./product-list.component.css']
 })
@@ -22,8 +23,13 @@ export class ProductListComponent implements OnInit {
   products: Product[] = [];
   categories: CategoryItem[] = [];
   searchTerm = '';
+  selectedCategory = '';
   loading = true;
   error = '';
+
+  totalRecords = 0;
+  pageSize = 12;
+  currentPage = 1;
 
   showAddForm = false;
   creating = false;
@@ -69,9 +75,10 @@ export class ProductListComponent implements OnInit {
     this.loading = true;
     this.error = '';
 
-    this.productService.getProducts(1, 18, this.searchTerm).subscribe({
+    this.productService.getProducts(this.currentPage, this.pageSize, this.searchTerm, this.selectedCategory).subscribe({
       next: (res) => {
         this.products = (res.data as Product[]) || [];
+        this.totalRecords = res.total || 0;
         this.loading = false;
       },
       error: (err) => {
@@ -82,6 +89,19 @@ export class ProductListComponent implements OnInit {
   }
 
   onSearch(): void {
+    this.currentPage = 1; // Reset to first page on search
+    this.loadProducts();
+  }
+
+  onCategoryChange(): void {
+    this.currentPage = 1; // Reset to first page on category change
+    this.loadProducts();
+  }
+
+  onPageChange(event: any): void {
+    // PrimeNG Paginator event: event.page is 0-indexed, event.rows is the selected page size
+    this.currentPage = event.page + 1;
+    this.pageSize = event.rows;
     this.loadProducts();
   }
 

@@ -15,7 +15,9 @@ import { CheckoutComponent } from './components/checkout/checkout.component';
 import { OrderHistoryComponent } from './components/order-history/order-history.component';
 import { AdminCategoryComponent } from './components/admin-category/admin-category.component';
 import { AdminOrdersComponent } from './components/admin-orders/admin-orders.component';
+import { AdminDashboardComponent } from './components/admin-dashboard/admin-dashboard.component';
 import { SignInActivityComponent } from './components/sign-in-activity/sign-in-activity.component';
+import { NotificationsComponent } from './components/notifications/notifications.component';
 
 // -------------------------------------------------------------
 // ROUTE GUARDS
@@ -66,10 +68,12 @@ export const routes: Routes = [
   { path: 'wishlist', component: WishlistComponent, canActivate: [authGuard] },
   { path: 'checkout', component: CheckoutComponent, canActivate: [authGuard] },
   { path: 'orders', component: OrderHistoryComponent, canActivate: [authGuard] },
+  { path: 'notifications', component: NotificationsComponent, canActivate: [authGuard] },
   { path: 'sign-in-activity', component: SignInActivityComponent, canActivate: [authGuard] },
   { path: 'reset-password/:token', component: ResetPasswordComponent },
   
   // Admin Routes
+  { path: 'admin/dashboard', component: AdminDashboardComponent, canActivate: [adminGuard] },
   { path: 'admin/categories', component: AdminCategoryComponent, canActivate: [adminGuard] },
   { path: 'admin/orders', component: AdminOrdersComponent, canActivate: [adminGuard] },
 

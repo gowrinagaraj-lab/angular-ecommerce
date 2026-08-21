@@ -1,0 +1,67 @@
+<div class="dashboard-container">
+  <div class="header-bar">
+    <h2>Admin Dashboard</h2>
+  </div>
+
+  @if (loading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading statistics...</p>
+    </div>
+  }
+
+  @if (error) {
+    <div class="error-state">
+      <p>{{ error }}</p>
+      <button class="btn btn-primary" (click)="loadStats()">Retry</button>
+    </div>
+  }
+
+  @if (!loading && !error && stats) {
+    <div class="stats-grid">
+      <!-- Total Revenue Card -->
+      <div class="stat-card revenue-card">
+        <div class="stat-icon">
+          <i class="fas fa-rupee-sign"></i>
+        </div>
+        <div class="stat-details">
+          <h3>Total Revenue</h3>
+          <p class="stat-value">₹{{ stats.totalAmount | number:'1.0-0' }}</p>
+        </div>
+      </div>
+
+      <!-- Total Delivered Card -->
+      <div class="stat-card delivered-card">
+        <div class="stat-icon">
+          <i class="fas fa-box-open"></i>
+        </div>
+        <div class="stat-details">
+          <h3>Delivered Orders</h3>
+          <p class="stat-value">{{ stats.totalDelivered | number }}</p>
+        </div>
+      </div>
+
+      <!-- Total Cancelled Card -->
+      <div class="stat-card cancelled-card">
+        <div class="stat-icon">
+          <i class="fas fa-ban"></i>
+        </div>
+        <div class="stat-details">
+          <h3>Cancelled Orders</h3>
+          <p class="stat-value">{{ stats.totalCancelled | number }}</p>
+        </div>
+      </div>
+
+      <!-- Total Items Sold Card -->
+      <div class="stat-card items-card">
+        <div class="stat-icon">
+          <i class="fas fa-shopping-bag"></i>
+        </div>
+        <div class="stat-details">
+          <h3>Total Items Sold</h3>
+          <p class="stat-value">{{ stats.totalItems | number }}</p>
+        </div>
+      </div>
+    </div>
+  }
+</div>

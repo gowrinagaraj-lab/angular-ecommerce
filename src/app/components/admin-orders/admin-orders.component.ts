@@ -2,16 +2,20 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OrderService, Order } from '../../services/order.service';
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
 
 @Component({
   selector: 'app-admin-orders',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TableModule, ButtonModule, InputTextModule],
   templateUrl: './admin-orders.component.html',
   styleUrl: './admin-orders.component.css'
 })
 export class AdminOrdersComponent implements OnInit {
   orders: Order[] = [];
+  cols: any[] = [];
   loading = true;
   error = '';
   expandedOrderId: string | null = null;
@@ -23,6 +27,16 @@ export class AdminOrdersComponent implements OnInit {
   constructor(private orderService: OrderService) {}
 
   ngOnInit(): void {
+    this.cols = [
+      { field: 'sNo', header: 'S.No' },
+      { field: '_id', header: 'Order ID' },
+      { field: 'createdAt', header: 'Date' },
+      { field: 'totalItems', header: 'Total Items' },
+      { field: 'paymentMethod', header: 'Payment Method' },
+      { field: 'paymentStatus', header: 'Payment Status' },
+      { field: 'orderStatus', header: 'Order Status' },
+      { field: 'totalAmount', header: 'Total' }
+    ];
     this.fetchOrders();
   }
 
@@ -30,7 +44,11 @@ export class AdminOrdersComponent implements OnInit {
     this.loading = true;
     this.orderService.getAllOrders().subscribe({
       next: (res) => {
-        this.orders = res.data || [];
+        this.orders = (res.data || []).map((order: any, index: number) => ({
+          ...order,
+          sNo: index + 1,
+          totalItems: order.items ? order.items.length : 0
+        }));
         this.loading = false;
       },
       error: (err) => {
