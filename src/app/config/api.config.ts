@@ -12,11 +12,23 @@ export const API_CONFIG = {
     wishlist: '/wishlist',
     payments: '/payments',
     notifications: '/notifications',
-    chat: '/chat'
+    chat: '/chat',
+    reviews: '/reviews'
   }
 };
 
-// Helper function to build full URLs
+// The server origin (without /api) — used for serving uploaded files
+export const SERVER_ORIGIN = API_CONFIG.baseUrl.replace(/\/api$/, '');
+
+// Helper function to build full API URLs
 export function getApiUrl(endpoint: keyof typeof API_CONFIG.endpoints): string {
   return `${API_CONFIG.baseUrl}${API_CONFIG.endpoints[endpoint]}`;
+}
+
+// Helper to resolve media/upload paths from backend
+// Converts "/uploads/reviews/file.jpg" → "http://localhost:5000/uploads/reviews/file.jpg"
+export function getMediaUrl(path: string | undefined | null): string {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  return `${SERVER_ORIGIN}${path.startsWith('/') ? '' : '/'}${path}`;
 }

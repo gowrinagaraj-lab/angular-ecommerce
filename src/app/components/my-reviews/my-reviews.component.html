@@ -1,0 +1,95 @@
+<div class="my-reviews-wrapper">
+  <div class="my-reviews-card">
+    <h2>My Reviews</h2>
+
+    @if (loading) {
+      <p class="loading-text">Loading your reviews...</p>
+    }
+    @if (error) {
+      <p class="error-text">{{ error }}</p>
+    }
+
+    @if (!loading && !error && reviews.length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">📝</div>
+        <p>You haven't written any reviews yet.</p>
+        <a routerLink="/orders" class="btn-go-orders">Go to Order History</a>
+      </div>
+    }
+
+    @if (!loading && reviews.length > 0) {
+      <div class="reviews-list">
+        @for (review of reviews; track review._id) {
+          <div class="review-item">
+            <div class="review-header">
+              <div class="product-info">
+                <h4 class="product-title" *ngIf="review.product?.name">
+                  <a [routerLink]="['/products', review.product._id]">{{ review.product.name }}</a>
+                </h4>
+                <p class="review-date">{{ review.createdAt | date:'mediumDate' }}</p>
+              </div>
+              <div class="review-actions">
+                <p-rating [(ngModel)]="review.rating" [readonly]="true" [cancel]="false"></p-rating>
+                <div class="action-buttons">
+                  <button class="btn-edit" (click)="openEditModal(review)" title="Edit Review">
+                    ✏️ Edit
+                  </button>
+                  <button class="btn-delete" (click)="confirmDelete(review._id)" title="Delete Review">
+                    🗑 Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <p class="review-comment" *ngIf="review.comment">{{ review.comment }}</p>
+            <p class="review-no-comment" *ngIf="!review.comment">No comment left.</p>
+
+            @if (review.media && review.media.length > 0) {
+              <div class="media-gallery">
+                @for (m of review.media; track m.url) {
+                  <img *ngIf="m.type === 'image'" [src]="getMediaUrl(m.url)" alt="Review Media" class="review-media-img" />
+                  <video *ngIf="m.type === 'video'" [src]="getMediaUrl(m.url)" controls class="review-media-video"></video>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      @if (totalRecords > 0) {
+        <div class="paginator-container">
+          <p-paginator
+            [first]="(currentPage - 1) * pageSize"
+            [rows]="pageSize"
+            [totalRecords]="totalRecords"
+            [rowsPerPageOptions]="[5, 10, 20]"
+            (onPageChange)="onPageChange($event)">
+          </p-paginator>
+        </div>
+      }
+    }
+  </div>
+</div>
+
+<!-- Edit Review Modal -->
+<p-dialog header="Edit Your Review" [(visible)]="showEditModal" [modal]="true" [style]="{width: '45vw'}" [draggable]="false" [resizable]="false">
+  <div style="display: flex; flex-direction: column; gap: 15px; padding: 10px 0;">
+    <div>
+      <label style="display: block; font-weight: 600; margin-bottom: 8px;">Rating</label>
+      <p-rating [(ngModel)]="editData.rating" [stars]="5" [cancel]="false"></p-rating>
+    </div>
+    <div>
+      <label style="display: block; font-weight: 600; margin-bottom: 8px;">Comment</label>
+      <textarea
+        pInputTextarea
+        [(ngModel)]="editData.comment"
+        rows="4"
+        style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; resize: vertical; font-family: inherit;"
+        placeholder="Update your experience..."></textarea>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text" (click)="showEditModal = false"></button>
+    <button pButton pRipple label="Save Changes" icon="pi pi-check" class="p-button-success" [loading]="editLoading" (click)="submitEdit()"></button>
+  </ng-template>
+</p-dialog>

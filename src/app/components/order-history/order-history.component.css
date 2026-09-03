@@ -1,18 +1,21 @@
 .order-history-wrapper {
-  max-width: 900px;
+  max-width: 100%;
   margin: 30px auto;
   padding: 0 15px;
   font-family: sans-serif;
 }
 
+
+
 .order-history-card {
   background: #ffffff;
   padding: 25px;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-.loading-text, .empty-text {
+.loading-text,
+.empty-text {
   color: #64748b;
 }
 
@@ -69,10 +72,25 @@
   text-transform: capitalize;
 }
 
-.badge-success { background: #dcfce7; color: #15803d; }
-.badge-danger { background: #fee2e2; color: #b91c1c; }
-.badge-info { background: #dbeafe; color: #1d4ed8; }
-.badge-pending { background: #fef9c3; color: #92610a; }
+.badge-success {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.badge-danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.badge-info {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.badge-pending {
+  background: #fef9c3;
+  color: #92610a;
+}
 
 .order-details-row td {
   background: #f8fafc;
@@ -108,4 +126,44 @@
   font-size: 0.85rem;
   color: #475569;
   line-height: 1.5;
+}
+
+/* Review status buttons */
+.btn-write-review {
+  margin-left: 8px;
+  padding: 3px 10px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  border: 1px solid #3b82f6;
+  border-radius: 4px;
+  background: transparent;
+  color: #3b82f6;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.2s, color 0.2s;
+}
+
+.btn-write-review:hover {
+  background: #3b82f6;
+  color: white;
+}
+
+.btn-reviewed {
+  margin-left: 8px;
+  padding: 3px 10px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  border: 1px solid #15803d;
+  border-radius: 4px;
+  background: #dcfce7;
+  color: #15803d;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.btn-reviewed:hover {
+  background: #bbf7d0;
 }

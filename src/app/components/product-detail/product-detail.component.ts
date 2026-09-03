@@ -1,9 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { RatingModule } from 'primeng/rating';
+import { FormsModule } from '@angular/forms';
 import { ProductService } from '../../services/product.service';
 import { CartService } from '../../services/cart.service';
+import { ReviewService, Review } from '../../services/review.service';
 import { Product } from '../../models/product.model';
+import { getMediaUrl } from '../../config/api.config';
 
 interface CategoryItem {
   _id: string;
@@ -13,7 +18,7 @@ interface CategoryItem {
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, CommonModule, RatingModule, FormsModule],
   template: `
     <div class="container">
       @if (loading) {
@@ -31,6 +36,10 @@ interface CategoryItem {
             [alt]="product.name"
             style="max-width: 300px; height: auto; margin-bottom: 15px; display: block;"
             />
+          <div style="display: flex; align-items: center; margin-bottom: 15px; gap: 10px;">
+            <p-rating [(ngModel)]="product.rating" [readonly]="true" [cancel]="false"></p-rating>
+            <span style="color: #666;">({{ product.totalReviews || 0 }} reviews)</span>
+          </div>
           <p><strong>Price:</strong> ₹{{ product.price }}</p>
           <p><strong>Category:</strong> {{ getCategoryName(product) }}</p>
           <p><strong>Brand:</strong> {{ product.brand || 'N/A' }}</p>
@@ -40,6 +49,35 @@ interface CategoryItem {
             <button class="btn" (click)="addToCart()">Add to Cart</button>
             <a routerLink="/products" class="btn btn-secondary" style="margin-left: 10px;">Back to Products</a>
           </div>
+
+          <hr style="margin: 40px 0; border: 0; border-top: 1px solid #eee;" />
+          
+          <h3>Customer Reviews</h3>
+          @if (reviewsLoading) {
+            <p>Loading reviews...</p>
+          }
+          @if (!reviewsLoading && reviews.length === 0) {
+            <p style="color: #666; font-style: italic;">No reviews yet for this product.</p>
+          }
+          @for (review of reviews; track review._id) {
+            <div style="padding: 15px; border: 1px solid #f0f0f0; border-radius: 8px; margin-bottom: 15px; background: #fafafa;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <strong style="color: #333;">{{ review.user?.name || 'Anonymous User' }}</strong>
+                <span style="color: #999; font-size: 0.9em;">{{ review.createdAt | date:'mediumDate' }}</span>
+              </div>
+              <p-rating [(ngModel)]="review.rating" [readonly]="true" [cancel]="false"></p-rating>
+              <p style="margin-top: 10px; color: #444; line-height: 1.5;">{{ review.comment }}</p>
+              
+              @if (review.media && review.media.length > 0) {
+                <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                  @for (m of review.media; track m.url) {
+                    <img *ngIf="m.type === 'image'" [src]="getMediaUrl(m.url)" alt="Review Media" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd;" />
+                    <video *ngIf="m.type === 'video'" [src]="getMediaUrl(m.url)" controls style="width: 150px; height: 80px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd;"></video>
+                  }
+                </div>
+              }
+            </div>
+          }
         </div>
       }
     </div>
@@ -51,10 +89,17 @@ export class ProductDetailComponent implements OnInit {
   loading = true;
   error = '';
 
+  // Expose helper to template
+  getMediaUrl = getMediaUrl;
+  
+  reviews: Review[] = [];
+  reviewsLoading = true;
+
   constructor(
     private route: ActivatedRoute,
     private productService: ProductService,
-    private cartService: CartService
+    private cartService: CartService,
+    private reviewService: ReviewService
   ) {}
 
   ngOnInit(): void {
@@ -75,6 +120,16 @@ export class ProductDetailComponent implements OnInit {
         error: (err) => {
           this.error = err.error?.message || 'Product not found.';
           this.loading = false;
+        }
+      });
+
+      this.reviewService.getProductReviews(id).subscribe({
+        next: (res) => {
+          this.reviews = res.data || [];
+          this.reviewsLoading = false;
+        },
+        error: () => {
+          this.reviewsLoading = false;
         }
       });
     }

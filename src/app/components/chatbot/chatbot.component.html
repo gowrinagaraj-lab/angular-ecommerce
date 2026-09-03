@@ -4,19 +4,59 @@
     <div class="chat-header">
       <div class="header-info">
         <i class="fa-solid fa-robot bot-icon"></i>
-        <span>Shopping Assistant</span>
+        <span>{{ showHistory ? 'Chat History' : 'Shopping Assistant' }}</span>
       </div>
       <div class="header-actions">
-        <button class="action-btn" (click)="startNewConversation()" title="New Conversation">
-          <i class="fa-solid fa-arrows-rotate"></i>
+        <button class="action-btn" (click)="toggleHistory()" [title]="showHistory ? 'Back to Chat' : 'Conversation History'">
+          <i class="fa-solid" [ngClass]="showHistory ? 'fa-message' : 'fa-clock-rotate-left'"></i>
         </button>
-        <button class="action-btn close-btn" (click)="toggleChat()">
+        <button class="action-btn" (click)="startNewConversation()" title="New Conversation">
+          <i class="fa-solid fa-plus"></i>
+        </button>
+        <button class="action-btn close-btn" (click)="toggleChat()" title="Close">
           <i class="fa-solid fa-times"></i>
         </button>
       </div>
     </div>
 
-    <div class="chat-messages" #chatMessagesContainer>
+    <!-- History View -->
+    <div class="chat-history-container" *ngIf="showHistory">
+      <div class="history-header">
+        <span>Previous Chats</span>
+        <button class="btn-new-chat" (click)="startNewConversation()">
+          <i class="fa-solid fa-plus"></i> New Chat
+        </button>
+      </div>
+
+      <div class="history-loading" *ngIf="historyLoading">
+        <p>Loading history...</p>
+      </div>
+
+      <div class="history-empty" *ngIf="!historyLoading && conversations.length === 0">
+        <i class="fa-regular fa-comments empty-icon"></i>
+        <p>No chat history found.</p>
+      </div>
+
+      <div class="history-list" *ngIf="!historyLoading && conversations.length > 0">
+        <div 
+          class="history-item" 
+          *ngFor="let conv of conversations" 
+          [class.active]="(conv._id || conv.id) === conversationId"
+          (click)="loadConversation(conv._id || conv.id)"
+        >
+          <div class="history-item-content">
+            <div class="history-item-title">{{ conv.title || 'New conversation' }}</div>
+            <div class="history-item-date">{{ conv.updatedAt | date:'mediumDate' }}</div>
+          </div>
+          <button class="delete-conv-btn" (click)="deleteConversation(conv._id || conv.id, $event)" title="Delete Conversation">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Messages View -->
+    <div class="chat-messages" #chatMessagesContainer *ngIf="!showHistory">
       <div class="message-wrapper" *ngFor="let msg of messages" [ngClass]="msg.role">
         <div class="message-content">
           {{ msg.content }}
@@ -30,7 +70,8 @@
       </div>
     </div>
 
-    <div class="chat-input-area">
+    <!-- Input Area -->
+    <div class="chat-input-area" *ngIf="!showHistory">
       <div class="input-wrapper">
         <input 
           type="text" 

@@ -16,26 +16,18 @@
     }
 
     @if (!loading && orders.length > 0) {
-    <p-table 
-      #dt
-      [value]="orders" 
-      [columns]="cols"
-      exportFilename="orders_history"
-      [paginator]="true" 
-      [rows]="5" 
-      [rowsPerPageOptions]="[5, 10, 20]"
-      [globalFilterFields]="['_id', 'paymentMethod', 'paymentStatus', 'orderStatus']"
-      dataKey="_id"
-      styleClass="p-datatable-sm"
-      [scrollable]="true"
-      [tableStyle]="{'min-width': '50rem'}"
-    >
+    <p-table #dt [value]="orders" [columns]="cols" exportFilename="orders_history" [paginator]="true" [rows]="5"
+      [rowsPerPageOptions]="[5, 10, 20]" [globalFilterFields]="['_id', 'paymentMethod', 'paymentStatus', 'orderStatus']"
+      dataKey="_id" styleClass="p-datatable-sm" [scrollable]="true" [tableStyle]="{'min-width': '50rem'}">
       <ng-template pTemplate="caption">
-        <div class="flex" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-          <button type="button" pButton pRipple icon="pi pi-download" label="Export CSV" (click)="dt.exportCSV()" class="p-button-success p-button-sm"></button>
+        <div class="flex"
+          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <button type="button" pButton pRipple icon="pi pi-download" label="Export CSV" (click)="dt.exportCSV()"
+            class="p-button-success p-button-sm"></button>
           <span class="p-input-icon-left">
             <i class="pi pi-search" style="margin-right: 5px;"></i>
-            <input pInputText type="text" (input)="dt.filterGlobal($any($event.target).value, 'contains')" placeholder="Search orders..." style="padding: 0.5rem; border-radius: 4px; border: 1px solid #ccc;" />
+            <input pInputText type="text" (input)="dt.filterGlobal($any($event.target).value, 'contains')"
+              placeholder="Search orders..." style="padding: 0.5rem; border-radius: 4px; border: 1px solid #ccc;" />
           </span>
         </div>
       </ng-template>
@@ -55,7 +47,10 @@
       <ng-template pTemplate="body" let-order let-expanded="expanded">
         <tr class="order-row">
           <td>
-            <button type="button" pButton pRipple [pRowToggler]="order" class="p-button-text p-button-rounded p-button-plain" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" style="background: transparent; border: none; color: #555; cursor: pointer;"></button>
+            <button type="button" pButton pRipple [pRowToggler]="order"
+              class="p-button-text p-button-rounded p-button-plain"
+              [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+              style="background: transparent; border: none; color: #555; cursor: pointer;"></button>
           </td>
           <td>{{ order.sNo }}</td>
           <td class="order-id">#{{ order._id.slice(-8).toUpperCase() }}</td>
@@ -63,7 +58,8 @@
           <td>{{ order.totalItems }} item{{ order.totalItems !== 1 ? 's' : '' }}</td>
           <td>{{ order.paymentMethod }}</td>
           <td>{{ order.paymentStatus || 'Pending' }}</td>
-          <td><span class="badge" [ngClass]="statusClass(order.orderStatus)">{{ order.orderStatus || 'Pending' }}</span></td>
+          <td><span class="badge" [ngClass]="statusClass(order.orderStatus)">{{ order.orderStatus || 'Pending' }}</span>
+          </td>
           <td class="order-total">₹{{ order.totalAmount }}</td>
         </tr>
       </ng-template>
@@ -74,9 +70,22 @@
               <div class="details-section">
                 <h4>Items</h4>
                 @for (item of order.items; track item) {
-                <div class="detail-item-row">
-                  <span>{{ item.name }} × {{ item.quantity }}</span>
-                  <strong>₹{{ item.subtotal }}</strong>
+                <div class="detail-item-row" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px dashed #e2e8f0;">
+                  <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 160px;">
+                    <span>{{ item.name }} × {{ item.quantity }}</span>
+                    <strong style="color: #15803d;">₹{{ item.subtotal }}</strong>
+                  </div>
+                  @if ((order.orderStatus || '').toLowerCase() === 'delivered') {
+                    @if (isReviewed(item, order._id)) {
+                    <button class="btn-reviewed" (click)="openViewReviewModal(item, order._id)">
+                      ✓ Reviewed
+                    </button>
+                    } @else {
+                    <button class="btn-write-review" (click)="openReviewModal(item, order._id)">
+                      Write Review
+                    </button>
+                    }
+                  }
                 </div>
                 }
               </div>
@@ -90,7 +99,8 @@
                 </p>
               </div>
 
-              @if (order.orderStatus !== 'Delivered' && order.orderStatus !== 'Cancelled' && order.orderStatus !== 'Shipped') {
+              @if (order.orderStatus !== 'Delivered' && order.orderStatus !== 'Cancelled' && order.orderStatus !==
+              'Shipped') {
               <div class="details-section">
                 <h4>Cancel Order</h4>
                 <button class="btn btn-danger" style="padding: 5px 10px; font-size: 0.9rem;"
@@ -106,4 +116,115 @@
     </p-table>
     }
   </div>
+
+  <!-- Write Review Modal -->
+  <p-dialog header="Write a Review" [(visible)]="showReviewModal" [modal]="true" [style]="{width: '50vw'}"
+    [draggable]="false" [resizable]="false">
+    <div class="review-form" style="display: flex; flex-direction: column; gap: 15px; padding: 10px 0;">
+      <div class="form-group">
+        <label style="display: block; font-weight: 500; margin-bottom: 5px;">Rating</label>
+        <p-rating [(ngModel)]="reviewData.rating" [stars]="5" [cancel]="false"></p-rating>
+      </div>
+      <div class="form-group">
+        <label style="display: block; font-weight: 500; margin-bottom: 5px;">Comment</label>
+        <textarea pInputTextarea [(ngModel)]="reviewData.comment" rows="4"
+          style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;"
+          placeholder="Share your experience with this product..."></textarea>
+      </div>
+      <div class="form-group">
+        <label style="display: block; font-weight: 500; margin-bottom: 5px;">Upload Photos (Optional)</label>
+        <input type="file" multiple accept="image/jpeg,image/png,image/webp" (change)="onFileSelect($event)"
+          style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" />
+        <small style="color: #666;">You can select up to 5 photos (JPG, PNG, WebP).</small>
+      </div>
+      <div class="form-group">
+        <label style="display: block; font-weight: 500; margin-bottom: 5px;">Upload a Video (Optional)</label>
+        <input type="file" accept="video/mp4,video/webm,video/quicktime" (change)="onVideoSelect($event)"
+          style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" />
+        @if (reviewVideoFile) {
+        <div
+          style="margin-top: 8px; display: flex; align-items: center; gap: 8px; background: #f0fdf4; padding: 6px 10px; border-radius: 6px; border: 1px solid #bbf7d0;">
+          <span style="font-size: 1.2rem;">🎬</span>
+          <span style="font-size: 0.85rem; color: #15803d; flex: 1;">{{ reviewVideoFile.name }}</span>
+          <button type="button" (click)="clearVideo()"
+            style="background: transparent; border: none; color: #ef4444; cursor: pointer; font-size: 1rem; padding: 0;"
+            title="Remove video">✕</button>
+        </div>
+        }
+        <small style="color: #666;">MP4, WebM, or QuickTime. Max 25 MB.</small>
+      </div>
+    </div>
+    <ng-template pTemplate="footer">
+      <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text"
+        (click)="showReviewModal = false"></button>
+      <button pButton pRipple label="Submit Review" icon="pi pi-check" class="p-button-success"
+        (click)="submitReview()"></button>
+    </ng-template>
+  </p-dialog>
+
+  <!-- View Existing Review Modal -->
+  <p-dialog header="Your Review" [(visible)]="showViewReviewModal" [modal]="true" [style]="{width: '45vw'}"
+    [draggable]="false" [resizable]="false">
+    @if (viewingReview) {
+    <div style="padding: 10px 0; display: flex; flex-direction: column; gap: 15px;">
+      <div>
+        <label style="display: block; font-weight: 500; margin-bottom: 5px;">Your Rating</label>
+        <p-rating [(ngModel)]="viewingReview.rating" [readonly]="true" [cancel]="false"></p-rating>
+      </div>
+      <div *ngIf="viewingReview.comment">
+        <label style="display: block; font-weight: 500; margin-bottom: 5px;">Your Comment</label>
+        <p style="margin: 0; color: #444; line-height: 1.6; padding: 10px; background: #f8f9fa; border-radius: 6px;">{{
+          viewingReview.comment }}</p>
+      </div>
+      <div *ngIf="!viewingReview.comment">
+        <p style="color: #888; font-style: italic;">No comment left.</p>
+      </div>
+      @if (viewingReview.media && viewingReview.media.length > 0) {
+      <div>
+        <label style="display: block; font-weight: 500; margin-bottom: 5px;">Photos</label>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          @for (m of viewingReview.media; track m.url) {
+          <img *ngIf="m.type === 'image'" [src]="getMediaUrl(m.url)" alt="Review photo"
+            style="width: 100px; height: 100px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd;" />
+          <video *ngIf="m.type === 'video'" [src]="getMediaUrl(m.url)" controls
+            style="width: 150px; height: 100px; border-radius: 6px;"></video>
+          }
+        </div>
+      </div>
+      }
+      <small style="color: #94a3b8;">Reviewed on {{ viewingReview.createdAt | date:'mediumDate' }}</small>
+    </div>
+    }
+    <ng-template pTemplate="footer">
+      <button pButton pRipple label="Delete" icon="pi pi-trash" class="p-button-danger p-button-text"
+        (click)="confirmDeleteReview()"></button>
+      <button pButton pRipple label="Edit" icon="pi pi-pencil" class="p-button-warning"
+        (click)="openEditReviewModal()"></button>
+      <button pButton pRipple label="Close" icon="pi pi-times" class="p-button-text"
+        (click)="showViewReviewModal = false"></button>
+    </ng-template>
+  </p-dialog>
+
+  <!-- Edit Review Modal (from Order History) -->
+  <p-dialog header="Edit Your Review" [(visible)]="showEditModal" [modal]="true" [style]="{width: '45vw'}"
+    [draggable]="false" [resizable]="false">
+    <div style="display: flex; flex-direction: column; gap: 15px; padding: 10px 0;">
+      <div>
+        <label style="display: block; font-weight: 600; margin-bottom: 8px;">Rating</label>
+        <p-rating [(ngModel)]="editData.rating" [stars]="5" [cancel]="false"></p-rating>
+      </div>
+      <div>
+        <label style="display: block; font-weight: 600; margin-bottom: 8px;">Comment</label>
+        <textarea pInputTextarea [(ngModel)]="editData.comment" rows="4"
+          style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; resize: vertical; font-family: inherit;"
+          placeholder="Update your experience..."></textarea>
+      </div>
+    </div>
+    <ng-template pTemplate="footer">
+      <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text"
+        (click)="showEditModal = false"></button>
+      <button pButton pRipple label="Save Changes" icon="pi pi-check" class="p-button-success" [loading]="editLoading"
+        (click)="submitEditReview()"></button>
+    </ng-template>
+  </p-dialog>
 </div>

@@ -51,7 +51,7 @@ export class CheckoutComponent implements OnInit {
     private paymentService: PaymentService,
     private http: HttpClient,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.fetchAddresses();
@@ -241,6 +241,7 @@ export class CheckoutComponent implements OnInit {
   }
 
   private processOnlinePayment(orderPayload: any): void {
+
     this.orderService.checkout(orderPayload).subscribe({
       next: (res: any) => {
         const orderData = res.data; // Expecting created order containing razorpayOrderId
@@ -394,12 +395,12 @@ export class CheckoutComponent implements OnInit {
   useCurrentLocation(): void {
     if (navigator.geolocation) {
       this.loadingGeocode = true;
-      
+
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           const lat = pos.coords.latitude;
           const lng = pos.coords.longitude;
-          
+
           if (this.map) {
             this.map.setView([lat, lng], 16);
             this.setMarkerAndGeocode(lat, lng);

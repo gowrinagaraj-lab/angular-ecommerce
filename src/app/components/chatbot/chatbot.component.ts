@@ -17,6 +17,10 @@ export class ChatbotComponent implements OnInit, AfterViewChecked {
   isLoading = false;
   currentMessage = '';
   
+  showHistory = false;
+  historyLoading = false;
+  conversations: ChatConversation[] = [];
+
   conversationId: string | undefined = undefined;
   messages: ChatMessage[] = [
     { role: 'assistant', content: 'Hi there! I am your shopping assistant. How can I help you today?' }
@@ -25,7 +29,6 @@ export class ChatbotComponent implements OnInit, AfterViewChecked {
   constructor(private chatService: ChatService) {}
 
   ngOnInit(): void {
-    // Optionally load recent conversation here if needed
   }
 
   ngAfterViewChecked() {
@@ -34,11 +37,75 @@ export class ChatbotComponent implements OnInit, AfterViewChecked {
 
   toggleChat(): void {
     this.isOpen = !this.isOpen;
+    if (this.isOpen && this.showHistory) {
+      this.loadConversations();
+    }
+  }
+
+  toggleHistory(): void {
+    this.showHistory = !this.showHistory;
+    if (this.showHistory) {
+      this.loadConversations();
+    }
+  }
+
+  loadConversations(): void {
+    this.historyLoading = true;
+    this.chatService.getMyConversations(1, 20).subscribe({
+      next: (res) => {
+        this.historyLoading = false;
+        if (res.success && res.data) {
+          this.conversations = res.data;
+        }
+      },
+      error: (err) => {
+        this.historyLoading = false;
+        console.error('Failed to load conversations:', err);
+      }
+    });
+  }
+
+  loadConversation(id: string | undefined): void {
+    if (!id) return;
+    this.isLoading = true;
+    this.chatService.getConversationById(id).subscribe({
+      next: (res) => {
+        this.isLoading = false;
+        if (res.success && res.data) {
+          const conv = res.data;
+          this.conversationId = conv._id || conv.id;
+          this.messages = conv.messages || [];
+          this.showHistory = false;
+        }
+      },
+      error: (err) => {
+        this.isLoading = false;
+        console.error('Failed to fetch conversation:', err);
+      }
+    });
+  }
+
+  deleteConversation(id: string | undefined, event: Event): void {
+    event.stopPropagation();
+    if (!id) return;
+    if (!confirm('Are you sure you want to delete this chat history?')) return;
+
+    this.chatService.deleteConversation(id).subscribe({
+      next: (res) => {
+        if (this.conversationId === id) {
+          this.startNewConversation();
+        }
+        this.loadConversations();
+      },
+      error: (err) => {
+        console.error('Failed to delete conversation:', err);
+      }
+    });
   }
 
   scrollToBottom(): void {
     try {
-      if (this.chatMessagesContainer) {
+      if (this.chatMessagesContainer && !this.showHistory) {
         this.chatMessagesContainer.nativeElement.scrollTop = this.chatMessagesContainer.nativeElement.scrollHeight;
       }
     } catch(err) { }
@@ -73,6 +140,7 @@ export class ChatbotComponent implements OnInit, AfterViewChecked {
     this.messages = [
       { role: 'assistant', content: 'Hi there! I am your shopping assistant. How can I help you today?' }
     ];
+    this.showHistory = false;
   }
 
   clearInput(): void {

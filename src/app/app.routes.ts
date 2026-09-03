@@ -18,6 +18,7 @@ import { AdminOrdersComponent } from './components/admin-orders/admin-orders.com
 import { AdminDashboardComponent } from './components/admin-dashboard/admin-dashboard.component';
 import { SignInActivityComponent } from './components/sign-in-activity/sign-in-activity.component';
 import { NotificationsComponent } from './components/notifications/notifications.component';
+import { MyReviewsComponent } from './components/my-reviews/my-reviews.component';
 
 // -------------------------------------------------------------
 // ROUTE GUARDS
@@ -68,6 +69,7 @@ export const routes: Routes = [
   { path: 'wishlist', component: WishlistComponent, canActivate: [authGuard] },
   { path: 'checkout', component: CheckoutComponent, canActivate: [authGuard] },
   { path: 'orders', component: OrderHistoryComponent, canActivate: [authGuard] },
+  { path: 'my-reviews', component: MyReviewsComponent, canActivate: [authGuard] },
   { path: 'notifications', component: NotificationsComponent, canActivate: [authGuard] },
   { path: 'sign-in-activity', component: SignInActivityComponent, canActivate: [authGuard] },
   { path: 'reset-password/:token', component: ResetPasswordComponent },

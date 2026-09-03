@@ -35,6 +35,7 @@ import { NotificationService } from '../../services/notification.service';
             </button>
             @if (isMenuOpen) {
               <div style="position: absolute; right: 0; top: 100%; margin-top: 0.5rem; background-color: white; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); overflow: hidden; min-width: 160px; z-index: 1000; text-align: left;">
+                <a routerLink="/my-reviews" (click)="closeMenu()" style="display: block; padding: 0.75rem 1rem; color: #333; text-decoration: none; border-bottom: 1px solid #eee; font-size: 0.9rem;">My Reviews</a>
                 <a routerLink="/sign-in-activity" (click)="closeMenu()" style="display: block; padding: 0.75rem 1rem; color: #333; text-decoration: none; border-bottom: 1px solid #eee; font-size: 0.9rem;">Sign In Activity</a>
                 <a href="#" (click)="logout($event)" style="display: block; padding: 0.75rem 1rem; color: #e74c3c; text-decoration: none; font-size: 0.9rem;">Logout</a>
               </div>
