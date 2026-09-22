@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PaginatorModule } from 'primeng/paginator';
+import { Subject, debounceTime, takeUntil } from 'rxjs';
 import { NotificationService } from '../../services/notification.service';
 import { Notification } from '../../models/notification.model';
+import { SocketService } from '../../socket.service';
 
 @Component({
   selector: 'app-notifications',
@@ -11,7 +13,7 @@ import { Notification } from '../../models/notification.model';
   templateUrl: './notifications.component.html',
   styleUrls: ['./notifications.component.css']
 })
-export class NotificationsComponent implements OnInit {
+export class NotificationsComponent implements OnDestroy, OnInit {
   notifications: Notification[] = [];
   loading = true;
   error = '';
@@ -19,11 +21,27 @@ export class NotificationsComponent implements OnInit {
   totalRecords = 0;
   pageSize = 10;
   currentPage = 1;
+  private destroy$ = new Subject<void>();
 
-  constructor(private notificationService: NotificationService) {}
+  constructor(
+    private notificationService: NotificationService,
+    private socketService: SocketService
+  ) {}
 
   ngOnInit(): void {
     this.loadNotifications();
+
+    this.socketService.onProductChanged()
+      .pipe(debounceTime(300), takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.loadNotifications();
+        this.notificationService.getUnreadCount().subscribe();
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadNotifications(): void {

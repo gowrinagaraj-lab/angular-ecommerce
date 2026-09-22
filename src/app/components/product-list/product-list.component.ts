@@ -1,10 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { debounceTime, takeUntil } from 'rxjs/operators';
 import { ProductService } from '../../services/product.service';
 import { CartService } from '../../services/cart.service';
 import { Product } from '../../models/product.model';
 import { AuthService } from '../../services/auth.service';
+import { SocketService } from '../../socket.service';
 import { PaginatorModule } from 'primeng/paginator';
 
 export interface CategoryItem {
@@ -19,7 +22,7 @@ export interface CategoryItem {
   templateUrl: './product-list.component.html',
   styleUrls: ['./product-list.component.css']
 })
-export class ProductListComponent implements OnInit {
+export class ProductListComponent implements OnInit, OnDestroy {
   products: Product[] = [];
   categories: CategoryItem[] = [];
   searchTerm = '';
@@ -43,19 +46,32 @@ export class ProductListComponent implements OnInit {
   selectedFile: File | null = null;
   imagePreview: string | null = null;
 
+  private destroy$ = new Subject<void>();
+
   constructor(
     private productService: ProductService,
     private cartService: CartService,
-    private authService: AuthService
+    private authService: AuthService,
+    private socketService: SocketService
   ) { }
 
   ngOnInit(): void {
-    this.authService.currentUser$.subscribe(user => {
+    this.authService.currentUser$.pipe(takeUntil(this.destroy$)).subscribe(user => {
       this.isAdmin = user?.role === 'admin';
     });
 
     this.loadCategories();
     this.loadProducts();
+
+    // Auto-reload the list whenever a product is created, updated, or deleted elsewhere.
+    this.socketService.onProductChanged()
+      .pipe(debounceTime(300), takeUntil(this.destroy$))
+      .subscribe(() => this.loadProducts());
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadCategories(): void {

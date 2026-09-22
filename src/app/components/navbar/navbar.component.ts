@@ -1,10 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 
 import { RouterLink, Router } from '@angular/router';
 import { CartService } from '../../services/cart.service';
 import { AuthService, User } from '../../services/auth.service';
 import { WishlistService } from '../../services/wishlist.service';
 import { NotificationService } from '../../services/notification.service';
+import { SocketService } from '../../socket.service';
+import { Subject, debounceTime, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-navbar',
@@ -53,18 +55,20 @@ import { NotificationService } from '../../services/notification.service';
 })
 
 
-export class NavbarComponent implements OnInit {
+export class NavbarComponent implements OnDestroy, OnInit {
   cartCount = 0;
   wishlistCount = 0;
   unreadNotificationCount = 0;
   user: User | null = null;
   isMenuOpen = false;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private cartService: CartService,
     private authService: AuthService,
     private wishlistService: WishlistService,
     private notificationService: NotificationService,
+    private socketService: SocketService,
     private router: Router
   ) { }
 
@@ -72,6 +76,14 @@ export class NavbarComponent implements OnInit {
     // 1. Subscribe to reactive cart count updates
     this.cartService.cartCount$.subscribe(count => this.cartCount = count);
     this.notificationService.unreadCount$.subscribe(count => this.unreadNotificationCount = count);
+
+    this.socketService.onProductChanged()
+      .pipe(debounceTime(300), takeUntil(this.destroy$))
+      .subscribe(() => {
+        if (this.user) {
+          this.notificationService.getUnreadCount().subscribe();
+        }
+      });
 
     // 2. Fetch counts automatically when user logs in or page reloads
     this.authService.currentUser$.subscribe(user => {
@@ -86,6 +98,11 @@ export class NavbarComponent implements OnInit {
         this.notificationService.resetUnreadCount();
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   fetchWishlistCount(): void {

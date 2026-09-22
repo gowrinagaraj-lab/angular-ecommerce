@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { HttpClient } from '@angular/common/http';
 
@@ -107,7 +107,7 @@ import { HttpClient } from '@angular/common/http';
     </div>
     `
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   // Login State
   email = '';
   password = '';
@@ -122,10 +122,17 @@ export class LoginComponent {
   forgotError = '';
 
   constructor(
-    private authService: AuthService, 
+    private authService: AuthService,
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
+
+  ngOnInit(): void {
+    if (this.route.snapshot.queryParamMap.get('sessionExpired') === 'true') {
+      this.errorMessage = 'Your session has expired. Please log in again.';
+    }
+  }
 
   onLogin(): void {
     if (!this.email || !this.password) return;
