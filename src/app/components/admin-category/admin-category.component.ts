@@ -1,5 +1,4 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-
 import { FormsModule } from '@angular/forms';
 import { HttpEventType } from '@angular/common/http';
 import { Subscription } from 'rxjs';
@@ -26,7 +25,7 @@ export class AdminCategoryComponent implements OnInit, OnDestroy {
   currentPage = 1;
   pageSize = 10;
   totalPages = 1;
-  categoryName = '';
+  categoryName = ''; 
   categoryDescription = '';
   editingCategoryId: string | null = null;
   successMessage = '';
@@ -55,7 +54,7 @@ export class AdminCategoryComponent implements OnInit, OnDestroy {
     this.pollingSubscription?.unsubscribe();
   }
 
-  loadCategories(): void {
+    loadCategories(): void {
     this.productService.getCategories().subscribe({
       next: (res) => {
         // Backend might return { success: true, data: [...] } or just an array
@@ -131,7 +130,7 @@ export class AdminCategoryComponent implements OnInit, OnDestroy {
           this.loadCategories();
         },
         error: (err) => {
-          this.errorMessage = err.error?.message || 'Failed to create category';
+          this.errorMessage = err .error?.message || 'Failed to create category';
           this.isSubmitting = false;
         }
       });
@@ -236,7 +235,6 @@ export class AdminCategoryComponent implements OnInit, OnDestroy {
             this.uploadProgress = Math.round((event.loaded / event.total) * 100);
           } else if (event.type === HttpEventType.Response) {
             const jobId = event.body?.data?.jobId;
-
             if (jobId) {
               this.selectedImportFile = null;
               this.beginTrackingImport(jobId);
@@ -278,6 +276,7 @@ export class AdminCategoryComponent implements OnInit, OnDestroy {
   }
 
   private resumeImportIfAny(): void {
+    debugger
     const storedJobId = localStorage.getItem(ACTIVE_IMPORT_JOB_KEY);
 
     if (storedJobId) {
@@ -286,7 +285,7 @@ export class AdminCategoryComponent implements OnInit, OnDestroy {
   }
 
   private beginTrackingImport(jobId: string): void {
-    debugger
+
     localStorage.setItem(ACTIVE_IMPORT_JOB_KEY, jobId);
 
     this.pollingSubscription?.unsubscribe();
