@@ -192,12 +192,27 @@
                 />
                 <h4 class="product-title" [title]="product.name">{{ product.name }}</h4>
                 <p class="product-price"><strong>₹{{ product.price }}</strong></p>
+                <p
+                  class="stock-count"
+                  [class.in-stock]="!isOutOfStock(product)"
+                  [class.no-stock]="isOutOfStock(product)">
+                  Available: {{ product.stock ?? 0 }}
+                </p>
+                @if (isOutOfStock(product)) {
+                  <span class="stock-status out-of-stock">Out of stock</span>
+                }
                 <p class="product-desc">{{ product.description }}</p>
               </div>
               <!-- Action Buttons -->
               <div class="card-actions">
                 <a [routerLink]="['/products', product._id]" class="action-btn btn-details">Details</a>
-                <button (click)="addToCart(product)" class="action-btn btn-cart">Cart</button>
+                <button
+                  (click)="addToCart(product)"
+                  [disabled]="isOutOfStock(product)"
+                  [attr.aria-label]="isOutOfStock(product) ? product.name + ' is out of stock' : 'Add ' + product.name + ' to cart'"
+                  class="action-btn btn-cart">
+                  {{ isOutOfStock(product) ? 'Out of stock' : 'Cart' }}
+                </button>
                 @if (isAdmin) {
                   <button (click)="startEdit(product)" class="action-btn btn-edit">Edit</button>
                 }

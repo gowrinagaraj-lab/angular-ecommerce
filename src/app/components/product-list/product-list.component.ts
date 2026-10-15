@@ -143,8 +143,12 @@ export class ProductListComponent implements OnInit, OnDestroy {
     return 'https://via.placeholder.com/150';
   }
 
+  isOutOfStock(product: Product): boolean {
+    return (product.stock ?? 0) <= 0;
+  }
+
   addToCart(product: Product): void {
-    if (!product._id) return;
+    if (!product._id || this.isOutOfStock(product)) return;
     this.cartService.addToCart(product._id).subscribe({
       next: () => alert(`${product.name} added to cart!`),
       error: (err) => alert(err.error?.message || 'Failed to add product to cart')
