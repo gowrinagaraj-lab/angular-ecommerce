@@ -286,7 +286,9 @@ export class CheckoutComponent implements OnInit {
   }
 
   private verifyPayment(payload: VerifyPaymentPayload): void {
-    this.paymentService.verifyPayment(payload).subscribe({
+    const idempotencyKey = crypto.randomUUID();
+
+    this.paymentService.verifyPayment(payload, idempotencyKey).subscribe({
       next: () => {
         this.placingOrder = false;
         alert('Payment verified and order confirmed successfully!');

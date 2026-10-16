@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_CONFIG } from '../config/api.config';
 
@@ -23,7 +23,9 @@ export class PaymentService {
   }
 
   // Verify HMAC signature via your new route
-  verifyPayment(payload: VerifyPaymentPayload): Observable<any> {
-    return this.http.post(`${this.apiUrl}/payments/verify`, payload);
+  verifyPayment(payload: VerifyPaymentPayload, idempotencyKey: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/payments/verify`, payload, {
+      headers: new HttpHeaders({ 'Idempotency-Key': idempotencyKey })
+    });
   }
 }
