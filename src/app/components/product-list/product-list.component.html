@@ -40,7 +40,7 @@
               <option [ngValue]="''">-- Select Category --</option>
               @for (category of categories; track category) {
                 <option [ngValue]="category._id">
-                  {{ category.name }}
+                  {{ category.name    }}
                 </option>
               }
             </select>
@@ -206,13 +206,15 @@
               <!-- Action Buttons -->
               <div class="card-actions">
                 <a [routerLink]="['/products', product._id]" class="action-btn btn-details">Details</a>
-                <button
-                  (click)="addToCart(product)"
-                  [disabled]="isOutOfStock(product)"
-                  [attr.aria-label]="isOutOfStock(product) ? product.name + ' is out of stock' : 'Add ' + product.name + ' to cart'"
-                  class="action-btn btn-cart">
-                  {{ isOutOfStock(product) ? 'Out of stock' : 'Cart' }}
-                </button>
+                @if (!isAdmin) {
+                  <button
+                    (click)="addToCart(product)"
+                    [disabled]="isOutOfStock(product)"
+                    [attr.aria-label]="isOutOfStock(product) ? product.name + ' is out of stock' : 'Add ' + product.name + ' to cart'"
+                    class="action-btn btn-cart">
+                    {{ isOutOfStock(product) ? 'Out of stock' : 'Cart' }}
+                  </button>
+                }
                 @if (isAdmin) {
                   <button (click)="startEdit(product)" class="action-btn btn-edit">Edit</button>
                 }

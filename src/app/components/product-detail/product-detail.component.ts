@@ -6,6 +6,7 @@ import { RatingModule } from 'primeng/rating';
 import { FormsModule } from '@angular/forms';
 import { ProductService } from '../../services/product.service';
 import { CartService } from '../../services/cart.service';
+import { AuthService } from '../../services/auth.service';
 import { ReviewService, Review } from '../../services/review.service';
 import { Product } from '../../models/product.model';
 import { getMediaUrl } from '../../config/api.config';
@@ -46,8 +47,10 @@ interface CategoryItem {
           <p><strong>Stock:</strong> {{ product.stock }}</p>
           <p><strong>Description:</strong> {{ product.description }}</p>
           <div style="margin-top: 20px;">
-            <button class="btn" (click)="addToCart()">Add to Cart</button>
-            <a routerLink="/products" class="btn btn-secondary" style="margin-left: 10px;">Back to Products</a>
+            @if (!isAdmin) {
+              <button class="btn" (click)="addToCart()" style="margin-right: 10px;">Add to Cart</button>
+            }
+            <a routerLink="/products" class="btn btn-secondary">Back to Products</a>
           </div>
 
           <hr style="margin: 40px 0; border: 0; border-top: 1px solid #eee;" />
@@ -99,8 +102,14 @@ export class ProductDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private productService: ProductService,
     private cartService: CartService,
-    private reviewService: ReviewService
+    private reviewService: ReviewService,
+    private authService: AuthService
   ) {}
+
+  // Admins manage the store; only customers shop
+  get isAdmin(): boolean {
+    return this.authService.isAdmin();
+  }
 
   ngOnInit(): void {
     this.productService.getCategories().subscribe({

@@ -21,6 +21,7 @@ const ACTIVE_IMPORT_JOB_KEY = 'categoryImport.activeJobId';
 })
 export class AdminCategoryComponent implements OnInit, OnDestroy {
   categories: any[] = [];
+  deletingAll = false;
   pagedCategories: any[] = [];
   currentPage = 1;
   pageSize = 10;
@@ -161,6 +162,37 @@ export class AdminCategoryComponent implements OnInit, OnDestroy {
         }
       });
     }
+  }
+
+  deleteAllCategories(): void {
+    const typed = prompt(
+      `This deletes all ${this.categories.length} categories (categories still used by products are kept).\n\nType DELETE ALL to confirm.`
+    );
+
+    if (typed !== 'DELETE ALL') {
+      return;
+    }
+
+    this.successMessage = '';
+    this.errorMessage = '';
+    this.deletingAll = true;
+
+    this.productService.deleteAllCategories().subscribe({
+      next: (res) => {
+        this.deletingAll = false;
+        const { deletedCount = 0, skippedCount = 0 } = res.data || {};
+        this.successMessage = `Deleted ${deletedCount} ${deletedCount === 1 ? 'category' : 'categories'}.`;
+        if (skippedCount > 0) {
+          this.errorMessage = `${skippedCount} ${skippedCount === 1 ? 'category was' : 'categories were'} kept because products still use them. Reassign or delete those products first.`;
+        }
+        this.resetForm();
+        this.loadCategories();
+      },
+      error: (err) => {
+        this.deletingAll = false;
+        this.errorMessage = err.error?.message || 'Failed to delete categories';
+      }
+    });
   }
 
   toggleStatus(category: any): void {

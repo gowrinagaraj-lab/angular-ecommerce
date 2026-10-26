@@ -83,6 +83,11 @@ export class OrderService {
     return this.http.post<OrderResponse>(`${this.apiUrl}/${orderId}/verify-delivery-otp`, { otp });
   }
 
+  // PATCH /api/orders/:id/status - admin: Pending -> Processing (COD) or Processing -> Shipped
+  updateOrderStatus(orderId: string, orderStatus: 'Processing' | 'Shipped'): Observable<OrderResponse> {
+    return this.http.patch<OrderResponse>(`${this.apiUrl}/${orderId}/status`, { orderStatus });
+  }
+
   // PATCH /api/orders/:id/cancel
   cancelOrder(orderId: string): Observable<OrderResponse> {
     return this.http.patch<OrderResponse>(`${this.apiUrl}/${orderId}/cancel`, {});

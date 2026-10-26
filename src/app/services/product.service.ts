@@ -29,6 +29,11 @@ export class ProductService {
     return this.http.delete(`${this.categoryurl}/${id}`);
   }
 
+  // Deletes every category not used by a product; the backend requires the confirmation phrase
+  deleteAllCategories(): Observable<any> {
+    return this.http.delete(this.categoryurl, { body: { confirm: 'DELETE ALL' } });
+  }
+
   toggleCategoryStatus(id: string, isActive: boolean): Observable<any> {
     return this.http.patch(`${this.categoryurl}/${id}/status`, { isActive });
   }

@@ -18,7 +18,7 @@ export interface CategoryItem {
 @Component({
   selector: 'app-product-list',
   standalone: true,
-  imports: [RouterLink, FormsModule, PaginatorModule],
+  imports: [RouterLink, FormsModule, PaginatorModule, ],
   templateUrl: './product-list.component.html',
   styleUrls: ['./product-list.component.css']
 })

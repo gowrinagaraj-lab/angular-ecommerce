@@ -51,6 +51,24 @@ export const adminGuard: CanActivateFn = () => {
   return false;
 };
 
+// 3. Customer Guard (Shopping pages: admins manage orders, they don't place them)
+export const customerGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  if (!authService.isLoggedIn()) {
+    router.navigate(['/login']);
+    return false;
+  }
+
+  if (authService.isAdmin()) {
+    router.navigate(['/admin/orders']);
+    return false;
+  }
+
+  return true;
+};
+
 // -------------------------------------------------------------
 // ROUTES DEFINITION
 // -------------------------------------------------------------
@@ -65,10 +83,10 @@ export const routes: Routes = [
   { path: 'register', component: RegisterComponent },
 
   // Protected User Routes (Requires Login)
-  { path: 'cart', component: CartComponent, canActivate: [authGuard] },
-  { path: 'wishlist', component: WishlistComponent, canActivate: [authGuard] },
-  { path: 'checkout', component: CheckoutComponent, canActivate: [authGuard] },
-  { path: 'orders', component: OrderHistoryComponent, canActivate: [authGuard] },
+  { path: 'cart', component: CartComponent, canActivate: [customerGuard] },
+  { path: 'wishlist', component: WishlistComponent, canActivate: [customerGuard] },
+  { path: 'checkout', component: CheckoutComponent, canActivate: [customerGuard] },
+  { path: 'orders', component: OrderHistoryComponent, canActivate: [customerGuard] },
   { path: 'my-reviews', component: MyReviewsComponent, canActivate: [authGuard] },
   { path: 'notifications', component: NotificationsComponent, canActivate: [authGuard] },
   { path: 'sign-in-activity', component: SignInActivityComponent, canActivate: [authGuard] },

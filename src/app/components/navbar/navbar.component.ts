@@ -18,8 +18,10 @@ import { Subject, debounceTime, takeUntil } from 'rxjs';
       <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 15px;">
         @if (user) {
           <a routerLink="/products" style="color: white; text-decoration: none;">Products</a>
-          <a routerLink="/wishlist" style="color: white; text-decoration: none;">Wishlist ({{ wishlistCount }})</a>
-          <a routerLink="/cart" style="color: white; text-decoration: none;">Cart ({{ cartCount }})</a>
+          @if (user.role !== 'admin') {
+            <a routerLink="/wishlist" style="color: white; text-decoration: none;">Wishlist ({{ wishlistCount }})</a>
+            <a routerLink="/cart" style="color: white; text-decoration: none;">Cart ({{ cartCount }})</a>
+          }
           <a routerLink="/notifications" style="color: white; text-decoration: none;">
             Notifications @if (unreadNotificationCount > 0) { ({{ unreadNotificationCount }}) }
           </a>
@@ -89,8 +91,10 @@ export class NavbarComponent implements OnDestroy, OnInit {
     this.authService.currentUser$.subscribe(user => {
       this.user = user;
       if (user) {
-        this.cartService.getCart().subscribe(); // Triggers cart count computation
-        this.fetchWishlistCount();
+        if (user.role !== 'admin') {
+          this.cartService.getCart().subscribe(); // Triggers cart count computation
+          this.fetchWishlistCount();
+        }
         this.notificationService.getUnreadCount().subscribe();
       } else {
         this.cartService.resetCartCount(); // Resets count to 0 on logout

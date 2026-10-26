@@ -22,6 +22,7 @@ export class AdminOrdersComponent implements OnInit {
   
   generatingOtp = false;
   verifyingOtp = false;
+  updatingStatus = false;
   otpInput = '';
 
   constructor(private orderService: OrderService) {}
@@ -70,6 +71,52 @@ export class AdminOrdersComponent implements OnInit {
       case 'shipped': return 'badge-info';
       default: return 'badge-pending';
     }
+  }
+
+  isOnlinePayment(order: Order): boolean {
+    return order.paymentMethod === 'CARD' || order.paymentMethod === 'UPI';
+  }
+
+  // Next step an admin can take, following Pending -> Processing -> Shipped -> Delivered.
+  // Online orders reach Processing on their own once payment is confirmed.
+  nextStatus(order: Order): 'Processing' | 'Shipped' | null {
+    const status = order.orderStatus || 'Pending';
+
+    if (status === 'Pending' && !this.isOnlinePayment(order)) {
+      return 'Processing';
+    }
+
+    if (status === 'Processing') {
+      return 'Shipped';
+    }
+
+    return null;
+  }
+
+  isAwaitingPayment(order: Order): boolean {
+    return this.isOnlinePayment(order) && (order.orderStatus || 'Pending') === 'Pending' && order.paymentStatus !== 'Paid';
+  }
+
+  updateStatus(order: Order, event: Event): void {
+    event.stopPropagation();
+    const next = this.nextStatus(order);
+
+    if (!next) {
+      return;
+    }
+
+    this.updatingStatus = true;
+    this.orderService.updateOrderStatus(order._id, next).subscribe({
+      next: () => {
+        this.updatingStatus = false;
+        order.orderStatus = next;
+        this.otpInput = '';
+      },
+      error: (err) => {
+        this.updatingStatus = false;
+        alert(err.error?.message || 'Failed to update order status');
+      }
+    });
   }
 
   generateOtp(order: Order, event: Event): void {

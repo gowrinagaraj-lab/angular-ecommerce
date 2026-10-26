@@ -89,7 +89,24 @@
                   {{ order.shippingAddress?.country }}
                 </p>
               </div>
-              @if (order.orderStatus !== 'Delivered' && order.orderStatus !== 'Cancelled') {
+              @if (isAwaitingPayment(order)) {
+                <div class="details-section" style="min-width: 280px; flex: 1.5;">
+                  <h4>Order Progress</h4>
+                  <p class="shipping-text">Awaiting {{ order.paymentMethod }} payment. The order moves to Processing automatically once Razorpay confirms it.</p>
+                </div>
+              }
+              @if (nextStatus(order); as next) {
+                <div class="details-section" style="min-width: 280px; flex: 1.5;">
+                  <h4>Order Progress</h4>
+                  <p class="shipping-text">
+                    {{ next === 'Processing' ? 'Confirm this COD order to start packing it.' : 'Mark as shipped once the order is packed and handed to the courier.' }}
+                  </p>
+                  <button class="btn btn-primary" style="padding: 6px 12px; font-size: 0.85rem; white-space: nowrap;" (click)="updateStatus(order, $event)" [disabled]="updatingStatus">
+                    {{ updatingStatus ? 'Updating...' : 'Mark as ' + next }}
+                  </button>
+                </div>
+              }
+              @if (order.orderStatus === 'Shipped') {
                 <div class="details-section" style="min-width: 280px; flex: 1.5;">
                   <h4>Delivery Management</h4>
                   <div class="delivery-actions" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; align-items: center;">
