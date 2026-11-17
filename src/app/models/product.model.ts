@@ -10,6 +10,7 @@ export interface Product {
   description: string;
   price: number;
   stock?: number;
+  lowStockThreshold?: number;
   category?: string | { _id: string; name: string };
   brand?: string;
   images?: ProductImage[];
@@ -17,6 +18,26 @@ export interface Product {
   rating?: number;
   totalReviews?: number;
   isActive?: boolean;
+}
+
+export interface LowStockProduct {
+  _id: string;
+  name: string;
+  stock: number;
+  lowStockThreshold: number;
+  alertedAt: string | null;
+  mainImage?: string;
+  isActive?: boolean;
+}
+
+export interface InventorySummary {
+  totalProducts: number;
+  outOfStock: number;
+  lowStock: number;
+  reservedUnits: number;
+  reservedOrders: number;
+  defaultLowStockThreshold: number;
+  lowStockProducts: LowStockProduct[];
 }
 
 export interface CartItem {

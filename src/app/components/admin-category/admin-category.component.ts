@@ -308,7 +308,7 @@ export class AdminCategoryComponent implements OnInit, OnDestroy {
   }
 
   private resumeImportIfAny(): void {
-    debugger
+    
     const storedJobId = localStorage.getItem(ACTIVE_IMPORT_JOB_KEY);
 
     if (storedJobId) {

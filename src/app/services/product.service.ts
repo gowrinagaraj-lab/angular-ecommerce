@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Product, ProductApiResponse } from '../models/product.model';
+import { Product, ProductApiResponse, InventorySummary } from '../models/product.model';
 import { getApiUrl } from '../config/api.config';
 
 @Injectable({
@@ -12,6 +12,11 @@ export class ProductService {
   private categoryurl = getApiUrl('categories');
 
   constructor(private http: HttpClient) {}
+
+  // GET /api/products/admin/inventory - stock widgets for the admin dashboard
+  getInventorySummary(): Observable<{ success: boolean; data: InventorySummary }> {
+    return this.http.get<{ success: boolean; data: InventorySummary }>(`${this.apiUrl}/admin/inventory`);
+  }
 
   getCategories(): Observable<any> {
     return this.http.get(this.categoryurl);

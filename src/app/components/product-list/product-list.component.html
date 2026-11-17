@@ -35,6 +35,11 @@
             <input type="number" [(ngModel)]="newProduct.stock" name="newStock" required min="0">
           </div>
           <div class="form-group">
+            <label>Low-stock alert at</label>
+            <input type="number" [(ngModel)]="newProduct.lowStockThreshold" name="newLowStockThreshold" min="0"
+              title="Admins get an alert when stock falls to this level">
+          </div>
+          <div class="form-group">
             <label>Category *</label>
             <select [(ngModel)]="newProduct.category" name="newCategory" required>
               <option [ngValue]="''">-- Select Category --</option>
@@ -102,6 +107,11 @@
           <div class="form-group">
             <label>Stock:</label>
             <input type="number" [(ngModel)]="editingProduct.stock" name="editStock" required min="0">
+          </div>
+          <div class="form-group">
+            <label>Low-stock alert at</label>
+            <input type="number" [(ngModel)]="editingProduct.lowStockThreshold" name="editLowStockThreshold" min="0"
+              title="Admins get an alert when stock falls to this level">
           </div>
           <div class="form-group">
             <label>Category *</label>

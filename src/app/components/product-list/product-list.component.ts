@@ -51,7 +51,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
   constructor(
     private productService: ProductService,
     private cartService: CartService,
-    private authService: AuthService,
+    private authService: AuthService, 
     private socketService: SocketService
   ) { }
 
@@ -63,10 +63,62 @@ export class ProductListComponent implements OnInit, OnDestroy {
     this.loadCategories();
     this.loadProducts();
 
-    // Auto-reload the list whenever a product is created, updated, or deleted elsewhere.
-    this.socketService.onProductChanged()
+    // Real-time updates: deletes and updates are applied to the list at once;
+    // anything that changes paging or ordering triggers a quiet reload.
+    this.socketService.onProductDeleted()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(({ data }) => this.applyProductDeleted(data._id));
+
+    this.socketService.onProductUpdated()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(({ data, partial }) => this.applyProductUpdated(data, !!partial));
+
+    this.socketService.onProductCreated()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.reloadQuietly$.next());
+
+    this.reloadQuietly$
       .pipe(debounceTime(300), takeUntil(this.destroy$))
-      .subscribe(() => this.loadProducts());
+      .subscribe(() => this.loadProducts(true));
+  }
+
+  private reloadQuietly$ = new Subject<void>();
+
+  private applyProductDeleted(productId: string): void {
+    const before = this.products.length;
+    this.products = this.products.filter(product => product._id !== productId);
+
+    if (this.products.length < before) {
+      this.totalRecords = Math.max(0, this.totalRecords - 1);
+
+      if (this.editingProduct?._id === productId) {
+        this.editingProduct = null;
+      }
+    }
+
+    // Refill the page (and fix page counts) from the server in the background
+    this.reloadQuietly$.next();
+  }
+
+  private applyProductUpdated(data: Partial<Product> & { _id?: string }, partial: boolean): void {
+    const index = this.products.findIndex(product => product._id === data._id);
+
+    if (index === -1) {
+      return;
+    }
+
+    const current = this.products[index];
+    const { category, ...changes } = data;
+
+    // Events carry the category as a plain id; keep the populated one unless it changed
+    const currentCategoryId = typeof current.category === 'object' ? current.category?._id : current.category;
+    const categoryChanged = !partial && category !== undefined && String(category) !== String(currentCategoryId);
+
+    this.products = this.products.map((product, i) => (i === index ? { ...product, ...changes } : product));
+
+    if (categoryChanged) {
+      this.reloadQuietly$.next();
+    }
   }
 
   ngOnDestroy(): void {
@@ -87,9 +139,12 @@ export class ProductListComponent implements OnInit, OnDestroy {
     });
   }
 
-  loadProducts(): void {
-    this.loading = true;
-    this.error = '';
+  // `quiet` refreshes in the background without the loading state (used for real-time updates)
+  loadProducts(quiet = false): void {
+    if (!quiet) {
+      this.loading = true;
+      this.error = '';
+    }
 
     this.productService.getProducts(this.currentPage, this.pageSize, this.searchTerm, this.selectedCategory).subscribe({
       next: (res) => {
@@ -98,7 +153,9 @@ export class ProductListComponent implements OnInit, OnDestroy {
         this.loading = false;
       },
       error: (err) => {
-        this.error = err.error?.message || 'Failed to load products from server.';
+        if (!quiet) {
+          this.error = err.error?.message || 'Failed to load products from server.';
+        }
         this.loading = false;
       }
     });
@@ -194,7 +251,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
   }
 
   resetNewProductForm(): Partial<Product> {
-    return { name: '', description: '', price: 0, stock: 0, category: '', brand: '', mainImage: '' };
+    return { name: '', description: '', price: 0, stock: 0, lowStockThreshold: 5, category: '', brand: '', mainImage: '' };
   }
 
   // --- SEND RAW JSON PAYLOAD ON CREATE ---
@@ -211,6 +268,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
       name: this.newProduct.name,
       price: Number(this.newProduct.price || 0),
       stock: Number(this.newProduct.stock || 0),
+      lowStockThreshold: Number(this.newProduct.lowStockThreshold ?? 5),
       category: String(this.newProduct.category),
       brand: this.newProduct.brand || '',
       description: this.newProduct.description,
@@ -245,6 +303,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
       name: this.editingProduct.name,
       price: Number(this.editingProduct.price || 0),
       stock: Number(this.editingProduct.stock || 0),
+      lowStockThreshold: Number(this.editingProduct.lowStockThreshold ?? 5),
       category: String(this.editingProduct.category),
       brand: this.editingProduct.brand || '',
       description: this.editingProduct.description,

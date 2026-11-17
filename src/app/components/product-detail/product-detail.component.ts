@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -10,6 +12,7 @@ import { AuthService } from '../../services/auth.service';
 import { ReviewService, Review } from '../../services/review.service';
 import { Product } from '../../models/product.model';
 import { getMediaUrl } from '../../config/api.config';
+import { SocketService } from '../../socket.service';
 
 interface CategoryItem {
   _id: string;
@@ -86,7 +89,9 @@ interface CategoryItem {
     </div>
     `
 })
-export class ProductDetailComponent implements OnInit {
+export class ProductDetailComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   product: Product | null = null;
   categories: CategoryItem[] = [];
   loading = true;
@@ -103,7 +108,8 @@ export class ProductDetailComponent implements OnInit {
     private productService: ProductService,
     private cartService: CartService,
     private reviewService: ReviewService,
-    private authService: AuthService
+    private authService: AuthService,
+    private socketService: SocketService
   ) {}
 
   // Admins manage the store; only customers shop
@@ -111,7 +117,33 @@ export class ProductDetailComponent implements OnInit {
     return this.authService.isAdmin();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  // Keep the open product in sync with changes made elsewhere
+  private watchProduct(): void {
+    this.socketService.onProductUpdated()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(({ data }) => {
+        if (this.product && data?._id === this.product._id) {
+          this.product = { ...this.product, ...data };
+        }
+      });
+
+    this.socketService.onProductDeleted()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(({ data }) => {
+        if (this.product && data?._id === this.product._id) {
+          this.product = null;
+          this.error = 'This product has been removed from the store.';
+        }
+      });
+  }
+
   ngOnInit(): void {
+    this.watchProduct();
     this.productService.getCategories().subscribe({
       next: (res: any) => {
         this.categories = res.data || res || [];

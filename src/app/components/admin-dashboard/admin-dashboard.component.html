@@ -64,4 +64,114 @@
       </div>
     </div>
   }
+
+  <!-- Inventory -->
+  <section class="inventory-section">
+    <div class="section-header">
+      <h3>Inventory</h3>
+      <button class="btn btn-secondary" (click)="loadInventory()" [disabled]="inventoryLoading">
+        {{ inventoryLoading ? 'Refreshing...' : 'Refresh' }}
+      </button>
+    </div>
+
+    @if (inventoryError) {
+      <div class="error-state">
+        <p>{{ inventoryError }}</p>
+        <button class="btn btn-primary" (click)="loadInventory()">Retry</button>
+      </div>
+    }
+
+    @if (inventory) {
+      <div class="stats-grid">
+        <div class="stat-card out-card">
+          <div class="stat-icon"><i class="fas fa-times-circle"></i></div>
+          <div class="stat-details">
+            <h3>Out of Stock</h3>
+            <p class="stat-value">{{ inventory.outOfStock | number }}</p>
+            <p class="stat-note">Customers can't buy these</p>
+          </div>
+        </div>
+
+        <div class="stat-card low-card">
+          <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+          <div class="stat-details">
+            <h3>Low Stock</h3>
+            <p class="stat-value">{{ inventory.lowStock | number }}</p>
+            <p class="stat-note">At or below their alert level</p>
+          </div>
+        </div>
+
+        <div class="stat-card reserved-card">
+          <div class="stat-icon"><i class="fas fa-lock"></i></div>
+          <div class="stat-details">
+            <h3>Reserved Units</h3>
+            <p class="stat-value">{{ inventory.reservedUnits | number }}</p>
+            <p class="stat-note">In {{ inventory.reservedOrders }} order{{ inventory.reservedOrders === 1 ? '' : 's' }} awaiting payment</p>
+          </div>
+        </div>
+
+        <div class="stat-card products-card">
+          <div class="stat-icon"><i class="fas fa-boxes"></i></div>
+          <div class="stat-details">
+            <h3>Products</h3>
+            <p class="stat-value">{{ inventory.totalProducts | number }}</p>
+            <p class="stat-note">Default alert level: {{ inventory.defaultLowStockThreshold }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="low-stock-panel">
+        <h4>Needs restocking</h4>
+
+        @if (inventory.lowStockProducts.length === 0) {
+          <p class="empty-note">All products are above their low-stock level.</p>
+        } @else {
+          <div class="table-wrap">
+            <table class="low-stock-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th class="num">Stock</th>
+                  <th class="num">Alert at</th>
+                  <th class="bar-col">Level</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (product of inventory.lowStockProducts; track product._id) {
+                  <tr>
+                    <td>
+                      <a [routerLink]="['/products', product._id]">{{ product.name }}</a>
+                      @if (product.isActive === false) { <span class="muted">(inactive)</span> }
+                    </td>
+                    <td class="num"><strong>{{ product.stock }}</strong></td>
+                    <td class="num">{{ product.lowStockThreshold }}</td>
+                    <td class="bar-col">
+                      <div class="stock-bar" [attr.aria-label]="product.stock + ' of ' + product.lowStockThreshold">
+                        <div class="stock-bar-fill" [class.empty]="product.stock === 0" [style.width.%]="stockPercent(product)"></div>
+                      </div>
+                    </td>
+                    <td>
+                      @if (product.stock === 0) {
+                        <span class="pill pill-out">Out of stock</span>
+                      } @else {
+                        <span class="pill pill-low">Low</span>
+                      }
+                      @if (product.alertedAt) {
+                        <span class="muted" [title]="'Alert sent ' + (product.alertedAt | date: 'medium')">· alerted</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          @if (inventory.lowStockProducts.length < inventory.lowStock + inventory.outOfStock) {
+            <p class="empty-note">Showing the {{ inventory.lowStockProducts.length }} lowest of {{ inventory.lowStock + inventory.outOfStock }}.</p>
+          }
+          <p class="hint">Restock or change a product's alert level from Products → Edit.</p>
+        }
+      </div>
+    }
+  </section>
 </div>
