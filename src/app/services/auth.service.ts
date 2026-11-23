@@ -9,15 +9,23 @@ export interface User {
   email: string;
   phone?: string;
   role?: 'customer' | 'admin' | string;
+  emailVerified?: boolean;
 }
 
 export interface AuthResponse {
   success: boolean;
   message: string;
   data: {
-    user: User;
-    token: string;
+    user?: User;
+    token?: string;
   };
+  retryAfter?: number;
+}
+
+export interface VerificationResponse {
+  success: boolean;
+  message: string;
+  retryAfter?: number;
 }
 
 export interface SignInActivity {
@@ -82,9 +90,7 @@ export class AuthService {
 
   // POST /api/auth/register
   register(userData: { name: string; email: string; password: string; phone?: string }): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, userData).pipe(
-      tap(res => this.handleAuthSuccess(res))
-    );
+    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, userData);
   }
 
   // POST /api/auth/login
@@ -92,6 +98,14 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials).pipe(
       tap(res => this.handleAuthSuccess(res))
     );
+  }
+
+  verifyEmail(token: string): Observable<VerificationResponse> {
+    return this.http.post<VerificationResponse>(`${this.apiUrl}/verify-email`, { token });
+  }
+
+  resendVerification(email: string): Observable<VerificationResponse> {
+    return this.http.post<VerificationResponse>(`${this.apiUrl}/resend-verification`, { email });
   }
 
   logout(): void {
@@ -122,7 +136,7 @@ export class AuthService {
   }
 
   private handleAuthSuccess(res: AuthResponse): void {
-    if (res.success && res.data) {
+    if (res.success && res.data?.token && res.data.user) {
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('currentUser', JSON.stringify(res.data.user));
       this.currentUserSubject.next(res.data.user);

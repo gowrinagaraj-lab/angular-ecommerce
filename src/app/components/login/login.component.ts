@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -15,6 +15,20 @@ import { HttpClient } from '@angular/common/http';
     
       @if (errorMessage) {
         <p style="color: red; background: #fde8e8; padding: 8px; border-radius: 4px;">{{ errorMessage }}</p>
+      }
+
+      @if (emailUnverified) {
+        @if (resendMessage) {
+          <p style="color: green;">{{ resendMessage }}</p>
+        }
+        <button
+          type="button"
+          (click)="resendVerification()"
+          [disabled]="resendLoading || resendCooldown > 0"
+          style="margin-bottom: 15px; padding: 8px 12px;"
+        >
+          {{ resendLoading ? 'Sending...' : resendCooldown > 0 ? 'Resend available in ' + resendCooldown + 's' : 'Resend verification email' }}
+        </button>
       }
     
       <!-- LOGIN FORM -->
@@ -107,12 +121,17 @@ import { HttpClient } from '@angular/common/http';
     </div>
     `
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit, OnDestroy {
   // Login State
   email = '';
   password = '';
   loading = false;
   errorMessage = '';
+  emailUnverified = false;
+  resendCooldown = 0;
+  resendMessage = '';
+  resendLoading = false;
+  private cooldownTimer: ReturnType<typeof setInterval> | null = null;
 
   // Forgot Password State
   showForgotModal = false;
@@ -134,6 +153,10 @@ export class LoginComponent implements OnInit {
     }
   }
 
+  ngOnDestroy(): void {
+    if (this.cooldownTimer) clearInterval(this.cooldownTimer);
+  }
+
   onLogin(): void {
     if (!this.email || !this.password) return;
 
@@ -143,13 +166,52 @@ export class LoginComponent implements OnInit {
     this.authService.login({ email: this.email, password: this.password }).subscribe({
       next: () => {
         this.loading = false;
+        this.emailUnverified = false;
         this.router.navigate(['/products']);
       },
       error: (err) => {
         this.loading = false;
         this.errorMessage = err.error?.message || 'Login failed. Invalid credentials.';
+        this.emailUnverified = err.error?.code === 'EMAIL_NOT_VERIFIED';
+        this.resendMessage = '';
+        if (this.emailUnverified) {
+          this.email = err.error?.email || this.email;
+          this.startResendCooldown(err.error?.retryAfter || 0);
+        }
       }
     });
+  }
+
+  resendVerification(): void {
+    if (!this.email || this.resendLoading || this.resendCooldown > 0) return;
+
+    this.resendLoading = true;
+    this.resendMessage = '';
+    this.authService.resendVerification(this.email).subscribe({
+      next: (res) => {
+        this.resendLoading = false;
+        this.resendMessage = res.message;
+        this.startResendCooldown(res.retryAfter || 60);
+      },
+      error: (err) => {
+        this.resendLoading = false;
+        this.resendMessage = err.error?.message || 'Failed to resend verification email.';
+        if (err.error?.retryAfter) this.startResendCooldown(err.error.retryAfter);
+      }
+    });
+  }
+
+  private startResendCooldown(seconds: number): void {
+    if (this.cooldownTimer) clearInterval(this.cooldownTimer);
+    this.resendCooldown = Math.max(0, seconds);
+    if (!this.resendCooldown) return;
+    this.cooldownTimer = setInterval(() => {
+      this.resendCooldown -= 1;
+      if (this.resendCooldown <= 0 && this.cooldownTimer) {
+        clearInterval(this.cooldownTimer);
+        this.cooldownTimer = null;
+      }
+    }, 1000);
   }
 
   toggleForgotModal(event?: Event): void {

@@ -19,6 +19,7 @@ import { AdminDashboardComponent } from './components/admin-dashboard/admin-dash
 import { SignInActivityComponent } from './components/sign-in-activity/sign-in-activity.component';
 import { NotificationsComponent } from './components/notifications/notifications.component';
 import { MyReviewsComponent } from './components/my-reviews/my-reviews.component';
+import { VerifyEmailComponent } from './components/verify-email/verify-email.component';
 
 // -------------------------------------------------------------
 // ROUTE GUARDS
@@ -81,6 +82,7 @@ export const routes: Routes = [
   { path: 'products/:id', component: ProductDetailComponent },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
+  { path: 'verify-email/:token', component: VerifyEmailComponent },
 
   // Protected User Routes (Requires Login)
   { path: 'cart', component: CartComponent, canActivate: [customerGuard] },

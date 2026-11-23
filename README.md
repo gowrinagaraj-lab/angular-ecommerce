@@ -7,7 +7,7 @@ A light, full-featured Angular e-commerce starter template.
 - **Product Details Page** for viewing item specs
 - **Shopping Cart Page** with quantity update and item removal
 - **Checkout Page** with shipping details form and order summary
-- **User Authentication** (Login and Registration forms)
+- **User Authentication** (Login and Registration forms, email verification, and verification-email resend)
 - Minimal and clean CSS setup using Angular Standalone Components
 
 ## Getting Started

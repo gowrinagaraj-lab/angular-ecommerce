@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -10,6 +10,20 @@ import { AuthService } from '../../services/auth.service';
   imports: [FormsModule, RouterLink],
   template: `
     <div class="container" style="max-width: 400px; margin: 40px auto; padding: 20px; background: white; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+      @if (verificationSent) {
+        <h2>Check your email</h2>
+        <p>We sent a verification link to <strong>{{ email }}</strong>. Verify your address before logging in.</p>
+        @if (errorMessage) {
+          <p style="color: red; font-size: 14px;">{{ errorMessage }}</p>
+        }
+        @if (resendMessage) {
+          <p style="color: green; font-size: 14px;">{{ resendMessage }}</p>
+        }
+        <button type="button" (click)="resendVerification()" [disabled]="loading || resendCooldown > 0">
+          {{ loading ? 'Sending...' : resendCooldown > 0 ? 'Resend available in ' + resendCooldown + 's' : 'Resend verification email' }}
+        </button>
+        <p><a routerLink="/login">Go to login</a></p>
+      } @else {
       <h2>Register</h2>
     
       @if (errorMessage) {
@@ -76,18 +90,27 @@ import { AuthService } from '../../services/auth.service';
       <p style="margin-top: 15px; text-align: center;">
         Already have an account? <a routerLink="/login">Login here</a>
       </p>
+      }
     </div>
     `
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnDestroy {
   name = '';
   email = '';
   password = '';
   phone = '';
   loading = false;
   errorMessage = '';
+  verificationSent = false;
+  resendMessage = '';
+  resendCooldown = 0;
+  private cooldownTimer: ReturnType<typeof setInterval> | null = null;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(private authService: AuthService) {}
+
+  ngOnDestroy(): void {
+    this.clearCooldownTimer();
+  }
 
   onRegister(): void {
     if (!this.name || !this.email || !this.password) {
@@ -113,13 +136,50 @@ export class RegisterComponent {
     this.authService.register(payload).subscribe({
       next: (res) => {
         this.loading = false;
-        alert(res.message || 'Registration successful!');
-        this.router.navigate(['/products']);
+        this.verificationSent = true;
+        this.startCooldown(res.retryAfter || 60);
       },
       error: (err) => {
         this.loading = false;
         this.errorMessage = err.error?.message || 'Registration failed.';
       }
     });
+  }
+
+  resendVerification(): void {
+    if (this.loading || this.resendCooldown > 0 || !this.email) return;
+
+    this.loading = true;
+    this.errorMessage = '';
+    this.resendMessage = '';
+
+    this.authService.resendVerification(this.email).subscribe({
+      next: (res) => {
+        this.loading = false;
+        this.resendMessage = res.message;
+        this.startCooldown(res.retryAfter || 60);
+      },
+      error: (err) => {
+        this.loading = false;
+        this.errorMessage = err.error?.message || 'Failed to resend verification email.';
+        if (err.error?.retryAfter) this.startCooldown(err.error.retryAfter);
+      }
+    });
+  }
+
+  private startCooldown(seconds: number): void {
+    this.clearCooldownTimer();
+    this.resendCooldown = Math.max(0, seconds);
+    if (!this.resendCooldown) return;
+
+    this.cooldownTimer = setInterval(() => {
+      this.resendCooldown -= 1;
+      if (this.resendCooldown <= 0) this.clearCooldownTimer();
+    }, 1000);
+  }
+
+  private clearCooldownTimer(): void {
+    if (this.cooldownTimer) clearInterval(this.cooldownTimer);
+    this.cooldownTimer = null;
   }
 }
