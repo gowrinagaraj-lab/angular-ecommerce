@@ -13,7 +13,8 @@ export const API_CONFIG = {
     payments: '/payments',
     notifications: '/notifications',
     chat: '/chat',
-    reviews: '/reviews'
+    reviews: '/reviews',
+    users: '/users'
   }
 };
 

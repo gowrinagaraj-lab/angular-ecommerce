@@ -20,6 +20,7 @@ import { SignInActivityComponent } from './components/sign-in-activity/sign-in-a
 import { NotificationsComponent } from './components/notifications/notifications.component';
 import { MyReviewsComponent } from './components/my-reviews/my-reviews.component';
 import { VerifyEmailComponent } from './components/verify-email/verify-email.component';
+import { AdminUsersComponent } from './components/admin-users/admin-users.component';
 
 // -------------------------------------------------------------
 // ROUTE GUARDS
@@ -98,6 +99,7 @@ export const routes: Routes = [
   { path: 'admin/dashboard', component: AdminDashboardComponent, canActivate: [adminGuard] },
   { path: 'admin/categories', component: AdminCategoryComponent, canActivate: [adminGuard] },
   { path: 'admin/orders', component: AdminOrdersComponent, canActivate: [adminGuard] },
+  { path: 'admin/users', component: AdminUsersComponent, canActivate: [adminGuard] },
 
   // Fallback Route
   { path: '**', redirectTo: '/products' }

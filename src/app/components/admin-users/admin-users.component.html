@@ -1,0 +1,105 @@
+<div class="container mx-auto p-4 max-w-6xl mt-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Manage Users</h1>
+  </div>
+
+  <div *ngIf="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+    {{ error }}
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white p-4 rounded-lg shadow mb-6 flex flex-wrap gap-4 items-end">
+    <div class="flex-1 min-w-[200px]">
+      <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Email</label>
+      <input pInputText type="email" [(ngModel)]="filterEmail" (keyup.enter)="onFilterChange()" placeholder="user@example.com" class="w-full border-gray-300 rounded-md shadow-sm p-2 border">
+    </div>
+    <div class="flex-1 min-w-[180px]">
+      <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Role</label>
+      <div class="w-full">
+        <p-dropdown [options]="roleOptions" [(ngModel)]="filterRole" (onChange)="onFilterChange()" styleClass="w-full" optionLabel="label" optionValue="value"></p-dropdown>
+      </div>
+    </div>
+    <div class="flex-1 min-w-[180px]">
+      <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Status</label>
+      <div class="w-full">
+        <p-dropdown [options]="statusOptions" [(ngModel)]="filterStatus" (onChange)="onFilterChange()" styleClass="w-full" optionLabel="label" optionValue="value"></p-dropdown>
+      </div>
+    </div>
+    <div>
+      <p-button label="Filter" (onClick)="onFilterChange()"></p-button>
+    </div>
+  </div>
+
+  <!-- PrimeNG Data Table -->
+  <div class="bg-white rounded-lg shadow overflow-hidden">
+    <p-table
+      [value]="users"
+      [lazy]="true"
+      (onLazyLoad)="loadData($event)"
+      dataKey="_id"
+      [tableStyle]="{'min-width': '60rem'}"
+      [paginator]="true"
+      [rows]="limit"
+      [totalRecords]="totalRecords"
+      [loading]="loading"
+      [rowsPerPageOptions]="[5, 10, 20]"
+      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+      [showCurrentPageReport]="true">
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Joined</th>
+          <th>Actions</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-user>
+        <tr>
+          <td>{{ user.name }}</td>
+          <td>{{ user.email }}</td>
+          <td>
+            <p-tag [severity]="user.role === 'admin' ? 'info' : 'secondary'" [value]="user.role"></p-tag>
+          </td>
+          <td>
+            <p-tag [severity]="user.isActive ? 'success' : 'danger'" [value]="user.isActive ? 'Active' : 'Suspended'"></p-tag>
+          </td>
+          <td>{{ user.createdAt | date:'mediumDate' }}</td>
+          <td>
+            <div class="flex gap-2" *ngIf="!isSelf(user); else selfLabel">
+              <p-button
+                [label]="user.role === 'admin' ? 'Make Customer' : 'Make Admin'"
+                [outlined]="true"
+                size="small"
+                [disabled]="updatingUserId === user._id"
+                (onClick)="toggleRole(user)">
+              </p-button>
+              <p-button
+                [label]="user.isActive ? 'Suspend' : 'Reactivate'"
+                [severity]="user.isActive ? 'danger' : 'success'"
+                [outlined]="true"
+                size="small"
+                [disabled]="updatingUserId === user._id"
+                (onClick)="toggleStatus(user)">
+              </p-button>
+            </div>
+            <ng-template #selfLabel>
+              <span class="text-xs text-gray-400 italic">This is you</span>
+            </ng-template>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6" class="text-center p-4">
+            No users found.
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
