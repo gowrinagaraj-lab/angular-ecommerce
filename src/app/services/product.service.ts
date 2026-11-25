@@ -43,13 +43,28 @@ export class ProductService {
     return this.http.patch(`${this.categoryurl}/${id}/status`, { isActive });
   }
 
-  getProducts(page = 1, limit = 10, search = '', category = ''): Observable<ProductApiResponse> {
+  getProducts(options: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    category?: string;
+    brand?: string;
+    minPrice?: number | null;
+    maxPrice?: number | null;
+    inStock?: boolean;
+    sort?: string;
+  } = {}): Observable<ProductApiResponse> {
     let params = new HttpParams()
-      .set('page', page)
-      .set('limit', limit);
+      .set('page', options.page ?? 1)
+      .set('limit', options.limit ?? 10);
 
-    if (search) params = params.set('search', search);
-    if (category) params = params.set('category', category);
+    if (options.search) params = params.set('search', options.search);
+    if (options.category) params = params.set('category', options.category);
+    if (options.brand) params = params.set('brand', options.brand);
+    if (options.minPrice !== null && options.minPrice !== undefined) params = params.set('minPrice', options.minPrice);
+    if (options.maxPrice !== null && options.maxPrice !== undefined) params = params.set('maxPrice', options.maxPrice);
+    if (options.inStock) params = params.set('inStock', 'true');
+    if (options.sort) params = params.set('sort', options.sort);
 
     return this.http.get<ProductApiResponse>(this.apiUrl, { params });
   }

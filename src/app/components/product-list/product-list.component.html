@@ -162,16 +162,6 @@
 
   <!-- Search and Filter Bar -->
   <div class="search-container" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-    <select 
-      [(ngModel)]="selectedCategory" 
-      (change)="onCategoryChange()" 
-      style="padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; min-width: 200px;">
-      <option value="">All Categories</option>
-      @for (category of categories; track category) {
-        <option [value]="category._id">{{ category.name }}</option>
-      }
-    </select>
-
     <input
       type="text"
       [(ngModel)]="searchTerm"
@@ -179,7 +169,73 @@
       placeholder="Search products..."
       style="flex: 1; min-width: 200px;"
       />
+
+    <select
+      [(ngModel)]="sortOption"
+      (change)="onSortChange()"
+      style="padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; min-width: 180px;">
+      @for (option of sortOptions; track option.value) {
+        <option [value]="option.value">{{ option.label }}</option>
+      }
+    </select>
+
+    <button type="button" class="btn btn-filter" (click)="toggleFilters()">
+      {{ showFilters ? 'Hide Filters' : 'Filters' }}{{ hasActiveFilters() ? ' •' : '' }}
+    </button>
+
+    @if (hasActiveFilters()) {
+      <button type="button" class="btn btn-clear" (click)="clearFilters()">Clear Filters</button>
+    }
   </div>
+
+  <!-- Category Chips -->
+  <div class="category-chips">
+    <button
+      type="button"
+      class="chip"
+      [class.chip-active]="selectedCategory === ''"
+      (click)="selectCategoryChip('')">
+      All
+    </button>
+    @for (category of categories; track category._id) {
+      <button
+        type="button"
+        class="chip"
+        [class.chip-active]="selectedCategory === category._id"
+        (click)="selectCategoryChip(category._id)">
+        {{ category.name }}
+      </button>
+    }
+  </div>
+
+  <!-- Advanced Filter Drawer -->
+  @if (showFilters) {
+    <div class="filter-drawer">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Brand</label>
+          <input type="text" [(ngModel)]="brandFilter" name="brandFilter" placeholder="e.g. Sony">
+        </div>
+        <div class="form-group">
+          <label>Min Price (₹)</label>
+          <input type="number" [(ngModel)]="minPrice" name="minPrice" min="0" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label>Max Price (₹)</label>
+          <input type="number" [(ngModel)]="maxPrice" name="maxPrice" min="0" placeholder="Any">
+        </div>
+        <div class="form-group filter-checkbox">
+          <label>
+            <input type="checkbox" [(ngModel)]="inStockOnly" name="inStockOnly">
+            In stock only
+          </label>
+        </div>
+      </div>
+      <div class="button-group">
+        <button type="button" class="btn btn-primary" (click)="applyFilters()">Apply Filters</button>
+      </div>
+    </div>
+  }
 
     <!-- Loading / Error States -->
     @if (loading) {

@@ -120,6 +120,63 @@
   box-sizing: border-box;
 }
 
+.btn-filter {
+  background: #2980b9;
+  white-space: nowrap;
+}
+
+.btn-clear {
+  background: #7f8c8d;
+  white-space: nowrap;
+}
+
+.category-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.chip {
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #333;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.chip-active {
+  background: #27ae60;
+  border-color: #27ae60;
+  color: white;
+}
+
+.filter-drawer {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.filter-checkbox {
+  display: flex;
+  align-items: flex-end;
+}
+
+.filter-checkbox label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.filter-checkbox input[type="checkbox"] {
+  width: auto;
+}
+
 .status-text {
   font-size: 1rem;
 }

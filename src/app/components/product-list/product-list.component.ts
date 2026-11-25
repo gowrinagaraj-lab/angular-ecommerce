@@ -34,6 +34,22 @@ export class ProductListComponent implements OnInit, OnDestroy {
   pageSize = 12;
   currentPage = 1;
 
+  // Advanced filters
+  showFilters = false;
+  brandFilter = '';
+  minPrice: number | null = null;
+  maxPrice: number | null = null;
+  inStockOnly = false;
+  sortOption = '-createdAt';
+
+  sortOptions = [
+    { label: 'Newest', value: '-createdAt' },
+    { label: 'Price: Low to High', value: 'price' },
+    { label: 'Price: High to Low', value: '-price' },
+    { label: 'Top Rated', value: '-rating' },
+    { label: 'Name: A to Z', value: 'name' }
+  ];
+
   showAddForm = false;
   creating = false;
   newProduct: Partial<Product> = this.resetNewProductForm();
@@ -146,7 +162,17 @@ export class ProductListComponent implements OnInit, OnDestroy {
       this.error = '';
     }
 
-    this.productService.getProducts(this.currentPage, this.pageSize, this.searchTerm, this.selectedCategory).subscribe({
+    this.productService.getProducts({
+      page: this.currentPage,
+      limit: this.pageSize,
+      search: this.searchTerm,
+      category: this.selectedCategory,
+      brand: this.brandFilter,
+      minPrice: this.minPrice,
+      maxPrice: this.maxPrice,
+      inStock: this.inStockOnly,
+      sort: this.sortOption
+    }).subscribe({
       next: (res) => {
         this.products = (res.data as Product[]) || [];
         this.totalRecords = res.total || 0;
@@ -169,6 +195,40 @@ export class ProductListComponent implements OnInit, OnDestroy {
   onCategoryChange(): void {
     this.currentPage = 1; // Reset to first page on category change
     this.loadProducts();
+  }
+
+  toggleFilters(): void {
+    this.showFilters = !this.showFilters;
+  }
+
+  selectCategoryChip(categoryId: string): void {
+    this.selectedCategory = categoryId;
+    this.onCategoryChange();
+  }
+
+  applyFilters(): void {
+    this.currentPage = 1;
+    this.loadProducts();
+  }
+
+  onSortChange(): void {
+    this.currentPage = 1;
+    this.loadProducts();
+  }
+
+  clearFilters(): void {
+    this.selectedCategory = '';
+    this.brandFilter = '';
+    this.minPrice = null;
+    this.maxPrice = null;
+    this.inStockOnly = false;
+    this.sortOption = '-createdAt';
+    this.currentPage = 1;
+    this.loadProducts();
+  }
+
+  hasActiveFilters(): boolean {
+    return !!this.selectedCategory || !!this.brandFilter || this.minPrice !== null || this.maxPrice !== null || this.inStockOnly;
   }
 
   onPageChange(event: any): void {
