@@ -141,7 +141,7 @@
           </div>
           @if (imagePreview || editingProduct.mainImage) {
             <div class="preview-box">
-              <img [src]="imagePreview || editingProduct.mainImage" alt="Image preview">
+              <img [src]="imagePreview || getImageUrl(editingProduct)" (error)="onImageError($event)" alt="Image preview">
             </div>
           }
         </div>
@@ -253,6 +253,7 @@
             <div class="card-content">
               <img
                 [src]="getImageUrl(product)"
+                (error)="onImageError($event)"
                 [alt]="product.name"
                 class="product-img"
                 />

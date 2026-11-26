@@ -9,6 +9,9 @@ import { Product } from '../../models/product.model';
 import { AuthService } from '../../services/auth.service';
 import { SocketService } from '../../socket.service';
 import { PaginatorModule } from 'primeng/paginator';
+import { getMediaUrl } from '../../config/api.config';
+
+const FALLBACK_IMAGE = 'https://via.placeholder.com/150?text=No+Image';
 
 export interface CategoryItem {
   _id: string;
@@ -255,9 +258,16 @@ export class ProductListComponent implements OnInit, OnDestroy {
   }
 
   getImageUrl(product: Product): string {
-    if (product.mainImage && product.mainImage.trim() !== '') return product.mainImage;
-    if (product.images && product.images.length > 0 && product.images[0]?.url) return product.images[0].url;
-    return 'https://via.placeholder.com/150';
+    if (product.mainImage && product.mainImage.trim() !== '') return getMediaUrl(product.mainImage);
+    if (product.images && product.images.length > 0 && product.images[0]?.url) return getMediaUrl(product.images[0].url);
+    return FALLBACK_IMAGE;
+  }
+
+  // Swaps a broken/404'd image (deleted file, bad manual URL) for the placeholder
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    img.onerror = null;
+    img.src = FALLBACK_IMAGE;
   }
 
   isOutOfStock(product: Product): boolean {
@@ -314,7 +324,28 @@ export class ProductListComponent implements OnInit, OnDestroy {
     return { name: '', description: '', price: 0, stock: 0, lowStockThreshold: 5, category: '', brand: '', mainImage: '' };
   }
 
-  // --- SEND RAW JSON PAYLOAD ON CREATE ---
+  // Builds the shared multipart payload for create/update: the mainImage field carries
+  // either the selected File (uploaded and resized server-side) or the manual URL text,
+  // never both - matching the form's "Upload File OR Main Image URL" choice.
+  private buildProductFormData(product: Partial<Product>): FormData {
+    const formData = new FormData();
+    formData.append('name', product.name || '');
+    formData.append('price', String(Number(product.price || 0)));
+    formData.append('stock', String(Number(product.stock || 0)));
+    formData.append('lowStockThreshold', String(Number(product.lowStockThreshold ?? 5)));
+    formData.append('category', String(product.category || ''));
+    formData.append('brand', product.brand || '');
+    formData.append('description', product.description || '');
+
+    if (this.selectedFile) {
+      formData.append('mainImage', this.selectedFile, this.selectedFile.name);
+    } else {
+      formData.append('mainImage', product.mainImage || '');
+    }
+
+    return formData;
+  }
+
   createProduct(): void {
     if (!this.newProduct.name || !this.newProduct.description || !this.newProduct.category) {
       alert('Please complete all required fields including Category.');
@@ -323,19 +354,9 @@ export class ProductListComponent implements OnInit, OnDestroy {
 
     this.creating = true;
 
-    // Send direct JSON object instead of FormData
-    const payload = {
-      name: this.newProduct.name,
-      price: Number(this.newProduct.price || 0),
-      stock: Number(this.newProduct.stock || 0),
-      lowStockThreshold: Number(this.newProduct.lowStockThreshold ?? 5),
-      category: String(this.newProduct.category),
-      brand: this.newProduct.brand || '',
-      description: this.newProduct.description,
-      mainImage: this.imagePreview || this.newProduct.mainImage || ''
-    };
+    const formData = this.buildProductFormData(this.newProduct);
 
-    this.productService.createProduct(payload).subscribe({
+    this.productService.createProduct(formData).subscribe({
       next: () => {
         this.creating = false;
         alert('Product created successfully!');
@@ -352,25 +373,14 @@ export class ProductListComponent implements OnInit, OnDestroy {
     });
   }
 
-  // --- SEND RAW JSON PAYLOAD ON UPDATE ---
   saveProductUpdate(): void {
     if (!this.editingProduct || !this.editingProduct._id) return;
 
     this.saving = true;
 
-    // Send direct JSON object instead of FormData
-    const payload = {
-      name: this.editingProduct.name,
-      price: Number(this.editingProduct.price || 0),
-      stock: Number(this.editingProduct.stock || 0),
-      lowStockThreshold: Number(this.editingProduct.lowStockThreshold ?? 5),
-      category: String(this.editingProduct.category),
-      brand: this.editingProduct.brand || '',
-      description: this.editingProduct.description,
-      mainImage: this.imagePreview || this.editingProduct.mainImage || ''
-    };
+    const formData = this.buildProductFormData(this.editingProduct);
 
-    this.productService.updateProduct(this.editingProduct._id, payload).subscribe({
+    this.productService.updateProduct(this.editingProduct._id, formData).subscribe({
       next: () => {
         this.saving = false;
         alert('Product updated successfully!');

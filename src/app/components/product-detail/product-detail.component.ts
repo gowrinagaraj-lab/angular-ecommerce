@@ -456,7 +456,7 @@ interface CategoryItem {
           <div class="product-layout">
             <div class="gallery-panel">
               <div class="main-image-wrap">
-                <img class="main-image" [src]="selectedImage || getImageUrl(product)" [alt]="product.name" />
+                <img class="main-image" [src]="selectedImage || getImageUrl(product)" (error)="onImageError($event)" [alt]="product.name" />
               </div>
 
               @if (getGalleryImages(product).length > 1) {
@@ -469,7 +469,7 @@ interface CategoryItem {
                       (click)="selectImage(image)"
                       aria-label="Select product image"
                     >
-                      <img [src]="image" [alt]="product.name + ' image ' + (i + 1)" />
+                      <img [src]="image" (error)="onImageError($event)" [alt]="product.name + ' image ' + (i + 1)" />
                     </button>
                   }
                 </div>
@@ -636,7 +636,8 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     const sources = [
       product.mainImage,
       ...(product.images || []).map(image => image.url)
-    ].filter((url): url is string => !!url && url.trim() !== '');
+    ].filter((url): url is string => !!url && url.trim() !== '')
+      .map(url => getMediaUrl(url));
 
     return [...new Set(sources)];
   }
@@ -743,12 +744,19 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   // Safe image accessor method preventing array out-of-bounds errors
   getImageUrl(product: Product): string {
     if (product.mainImage && product.mainImage.trim() !== '') {
-      return product.mainImage;
+      return getMediaUrl(product.mainImage);
     }
     if (product.images && product.images.length > 0 && product.images[0]?.url) {
-      return product.images[0].url;
+      return getMediaUrl(product.images[0].url);
     }
     return 'https://via.placeholder.com/300?text=No+Image';
+  }
+
+  // Swaps a broken/404'd image (deleted file, bad manual URL) for the placeholder
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    img.onerror = null;
+    img.src = 'https://via.placeholder.com/300?text=No+Image';
   }
 
   addToCart(): void {

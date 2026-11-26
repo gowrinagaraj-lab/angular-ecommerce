@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { CartService, BackendCartItem } from '../../services/cart.service';
 import { WishlistService } from '../../services/wishlist.service';
+import { getMediaUrl } from '../../config/api.config';
 
 @Component({
   selector: 'app-cart',
@@ -37,7 +38,8 @@ import { WishlistService } from '../../services/wishlist.service';
                 <tr style="border-bottom: 1px solid #eee;">
                   <td style="padding: 10px; display: flex; align-items: center; gap: 10px;">
                     <img
-                      [src]="item.product.mainImage || 'https://via.placeholder.com/50'"
+                      [src]="getImageUrl(item)"
+                      (error)="onImageError($event)"
                       style="width: 50px; height: 50px; object-fit: contain;"
                       />
                     <strong>{{ item.product.name }}</strong>
@@ -137,6 +139,16 @@ export class CartComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  getImageUrl(item: BackendCartItem): string {
+    return item.product.mainImage ? getMediaUrl(item.product.mainImage) : 'https://via.placeholder.com/50';
+  }
+
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    img.onerror = null;
+    img.src = 'https://via.placeholder.com/50';
   }
 
   onQuantityChange(productId: string, quantity: number): void {
