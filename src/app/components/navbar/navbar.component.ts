@@ -33,6 +33,7 @@ import { Subject, debounceTime, takeUntil } from 'rxjs';
             <a routerLink="/admin/categories" style="color: white; text-decoration: none;">Manage Categories</a>
             <a routerLink="/admin/orders" style="color: white; text-decoration: none;">Manage Orders</a>
             <a routerLink="/admin/users" style="color: white; text-decoration: none;">Manage Users</a>
+            <a routerLink="/admin/review-moderation" style="color: white; text-decoration: none;">Review Moderation</a>
           }
           <div style="position: relative; display: inline-block;">
             <button (click)="toggleMenu()" style="background: none; border: none; color: white; cursor: pointer; font-size: 1rem; padding: 0; outline: none;">

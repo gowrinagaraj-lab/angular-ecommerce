@@ -1,0 +1,91 @@
+<div class="container mx-auto p-4 max-w-6xl mt-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Review Moderation</h1>
+  </div>
+
+  <div *ngIf="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+    {{ error }}
+  </div>
+
+  <div class="bg-white rounded-lg shadow overflow-hidden">
+    <p-table
+      [value]="reviews"
+      [lazy]="true"
+      (onLazyLoad)="loadData($event)"
+      dataKey="_id"
+      [tableStyle]="{'min-width': '60rem'}"
+      [paginator]="true"
+      [rows]="limit"
+      [totalRecords]="totalRecords"
+      [loading]="loading"
+      [rowsPerPageOptions]="[5, 10, 20]"
+      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+      [showCurrentPageReport]="true">
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Product</th>
+          <th>Reviewer</th>
+          <th>Rating</th>
+          <th>Comment</th>
+          <th>Status</th>
+          <th>Reports</th>
+          <th>Actions</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-review>
+        <tr>
+          <td>{{ review.product?.name || 'Unknown product' }}</td>
+          <td>{{ review.user?.name || review.user?.email || 'Unknown user' }}</td>
+          <td>
+            <p-rating [ngModel]="review.rating" [readonly]="true" [cancel]="false"></p-rating>
+          </td>
+          <td class="max-w-xs truncate" [title]="review.comment">{{ review.comment || '—' }}</td>
+          <td>
+            <p-tag [severity]="review.status === 'hidden' ? 'danger' : 'success'" [value]="review.status"></p-tag>
+          </td>
+          <td>
+            <div *ngIf="review.reportCount; else noReports">
+              <strong>{{ review.reportCount }}</strong> report(s)
+              <ul class="text-xs text-gray-500 mt-1">
+                <li *ngFor="let report of review.reports">
+                  {{ report.user?.name || report.user?.email || 'A user' }}: {{ report.reason || 'No reason given' }}
+                </li>
+              </ul>
+            </div>
+            <ng-template #noReports>—</ng-template>
+          </td>
+          <td>
+            <div class="flex gap-2">
+              <p-button
+                label="Approve"
+                severity="success"
+                [outlined]="true"
+                size="small"
+                [disabled]="updatingReviewId === review._id"
+                (onClick)="approve(review)">
+              </p-button>
+              <p-button
+                label="Hide"
+                severity="danger"
+                [outlined]="true"
+                size="small"
+                [disabled]="updatingReviewId === review._id || review.status === 'hidden'"
+                (onClick)="hide(review)">
+              </p-button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="7" class="text-center p-4">
+            No reviews are awaiting moderation.
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>

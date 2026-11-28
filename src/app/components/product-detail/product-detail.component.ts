@@ -389,6 +389,21 @@ interface CategoryItem {
           margin-top: 12px;
         }
 
+        .review-report-btn {
+          margin-top: 10px;
+          background: none;
+          border: none;
+          padding: 0;
+          color: #9ca3af;
+          font-size: 0.8rem;
+          cursor: pointer;
+        }
+
+        .review-report-btn:hover {
+          color: #ef4444;
+          text-decoration: underline;
+        }
+
         .review-media img,
         .review-media video {
           width: 90px;
@@ -570,6 +585,12 @@ interface CategoryItem {
                           }
                         </div>
                       }
+
+                      @if (isLoggedIn) {
+                        <button type="button" class="review-report-btn" (click)="reportReview(review)">
+                          🚩 Report
+                        </button>
+                      }
                     </div>
                   }
                 </div>
@@ -622,6 +643,10 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   // Admins manage the store; only customers shop
   get isAdmin(): boolean {
     return this.authService.isAdmin();
+  }
+
+  get isLoggedIn(): boolean {
+    return this.authService.isLoggedIn();
   }
 
   get inStock(): boolean {
@@ -726,6 +751,15 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
         }
       });
     }
+  }
+
+  reportReview(review: Review): void {
+    const reason = prompt('Why are you reporting this review? (optional)') || '';
+
+    this.reviewService.reportReview(review._id, reason).subscribe({
+      next: () => alert('Thanks, this review has been reported to our moderation team.'),
+      error: (err) => alert(err.error?.message || 'Failed to report this review.')
+    });
   }
 
   // Category can come back as a populated object ({_id, name}) or a plain id string

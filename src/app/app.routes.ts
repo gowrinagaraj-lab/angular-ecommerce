@@ -21,6 +21,7 @@ import { NotificationsComponent } from './components/notifications/notifications
 import { MyReviewsComponent } from './components/my-reviews/my-reviews.component';
 import { VerifyEmailComponent } from './components/verify-email/verify-email.component';
 import { AdminUsersComponent } from './components/admin-users/admin-users.component';
+import { AdminReviewModerationComponent } from './components/admin-review-moderation/admin-review-moderation.component';
 
 // -------------------------------------------------------------
 // ROUTE GUARDS
@@ -100,6 +101,7 @@ export const routes: Routes = [
   { path: 'admin/categories', component: AdminCategoryComponent, canActivate: [adminGuard] },
   { path: 'admin/orders', component: AdminOrdersComponent, canActivate: [adminGuard] },
   { path: 'admin/users', component: AdminUsersComponent, canActivate: [adminGuard] },
+  { path: 'admin/review-moderation', component: AdminReviewModerationComponent, canActivate: [adminGuard] },
 
   // Fallback Route
   { path: '**', redirectTo: '/products' }

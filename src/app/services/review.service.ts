@@ -9,6 +9,12 @@ export interface ReviewMedia {
   originalName?: string;
 }
 
+export interface ReviewReport {
+  user: any;
+  reason: string;
+  createdAt: string;
+}
+
 export interface Review {
   _id: string;
   product: any;
@@ -17,6 +23,9 @@ export interface Review {
   rating: number;
   comment: string;
   media: ReviewMedia[];
+  status?: 'visible' | 'hidden';
+  reportCount?: number;
+  reports?: ReviewReport[];
   createdAt: string;
   updatedAt: string;
 }
@@ -62,5 +71,21 @@ export class ReviewService {
 
   deleteReview(reviewId: string): Observable<ReviewResponse> {
     return this.http.delete<ReviewResponse>(`${this.apiUrl}/${reviewId}`);
+  }
+
+  reportReview(reviewId: string, reason?: string): Observable<ReviewResponse> {
+    return this.http.post<ReviewResponse>(`${this.apiUrl}/${reviewId}/report`, { reason });
+  }
+
+  // Admin: reviews that are hidden or have been reported, awaiting a moderation decision
+  getModerationQueue(page = 1, limit = 10): Observable<ReviewResponse> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('limit', limit.toString());
+    return this.http.get<ReviewResponse>(`${this.apiUrl}/admin/queue`, { params });
+  }
+
+  moderateReview(reviewId: string, status: 'visible' | 'hidden'): Observable<ReviewResponse> {
+    return this.http.patch<ReviewResponse>(`${this.apiUrl}/${reviewId}/moderate`, { status });
   }
 }
